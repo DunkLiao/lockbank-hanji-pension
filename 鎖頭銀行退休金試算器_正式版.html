@@ -96,6 +96,99 @@
     }
 
     /* Base reset */
+    /* index.html visual contract */
+    :root {
+      color-scheme: light;
+      --background: #F5F0E4;
+      --surface-container-low: #EFE8D8;
+      --surface-container: #E6DEC8;
+      --surface-container-high: #DDD3B8;
+      --on-surface: #1B1C1E;
+      --on-surface-variant: #4B4942;
+      --outline: #1B1C1E;
+      --outline-variant: #CFC5AE;
+      --outline-gold: #B08D44;
+      --primary: #1A2B49;
+      --on-primary: #F5F0E4;
+      --primary-container: #E3E7EE;
+      --on-primary-container: #1A2B49;
+      --secondary: #2B5948;
+      --tertiary: #A62C22;
+      --on-tertiary: #F5F0E4;
+      --gold-ink: #78591C;
+      --gold-bright: #D4B26A;
+      --error: #9E241B;
+      --on-error: #F5F0E4;
+      --data-1: #1A2B49;
+      --data-2: #A62C22;
+      --data-3: #2B5948;
+      --data-4: #78591C;
+      --data-context: #B8AE98;
+      --font-headline: 'Noto Serif TC', serif;
+      --font-body: 'Noto Sans TC', sans-serif;
+      --font-label: 'Noto Sans TC', 'IBM Plex Mono', monospace;
+      --font-mono: 'IBM Plex Mono', 'Noto Sans TC', monospace;
+      --rounded: 0.125rem;
+      --rounded-lg: 0.125rem;
+      --rounded-full: 0.125rem;
+      --rule-sumi-left: 3px solid var(--primary);
+      --rule-vermilion-left: 3px solid var(--tertiary);
+      --rule-sumi: 1px solid var(--outline);
+      --rule-linen: 1px solid var(--outline-variant);
+      --rule-gold: 1px solid var(--outline-gold);
+      --rule-gold-double: 3px double var(--outline-gold);
+      --paper-vignette: inset 0 0 80px color-mix(in srgb, var(--gold-ink) 10%, transparent);
+      --label-tracking: 0.08em;
+      --positive: #2B5948;
+      --warning: #8A5612;
+      --focus: #1A2B49;
+      --display-size: clamp(1.75rem, 1.35rem + 1.3vw, 2.35rem);
+      --headline-size: clamp(1.25rem, 1.08rem + 0.55vw, 1.55rem);
+      --subhead-size: clamp(1.0625rem, 0.98rem + 0.25vw, 1.2rem);
+      --body-size: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
+      --label-size: 0.75rem;
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+      --space-3xl: 6rem;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+      --gold-on-indigo: var(--gold-bright);
+      --gold-text: var(--gold-ink);
+      --gold-wash: color-mix(in srgb, var(--gold-ink) 12%, var(--background));
+      --ink-outline: var(--outline);
+      --rule-crimson-left: var(--rule-vermilion-left);
+      --rule-hanji: var(--rule-linen);
+      --rule-indigo-left: var(--rule-sumi-left);
+      --rule-ink: var(--rule-sumi);
+      --secondary-container: color-mix(in srgb, var(--secondary) 12%, var(--background));
+      --shadow-paper: var(--paper-vignette);
+      --tertiary-container: color-mix(in srgb, var(--tertiary) 12%, var(--background));
+      --tertiary-hover: color-mix(in srgb, var(--tertiary) 86%, var(--on-surface));
+      --paper-glow: color-mix(in srgb, var(--background) 55%, transparent);
+      --paper-fiber: color-mix(in srgb, var(--on-surface) 1.5%, transparent);
+      --primary-hover: color-mix(in srgb, var(--primary) 86%, var(--on-surface));
+      --rule-double: var(--rule-gold-double);
+      --rule-seal-left: var(--rule-vermilion-left);
+      --indigo: var(--primary);
+      --paper-grain: none;
+      --rule-jade-left: var(--rule-sumi-left);
+      --secondary-soft: color-mix(in srgb, var(--secondary) 12%, var(--background));
+      --surface-paper-bright: var(--surface-container-low);
+      --gold-border: var(--outline-gold);
+      --gold-pale: color-mix(in srgb, var(--gold-bright) 42%, var(--background));
+      --on-secondary: var(--on-primary);
+      --positive-bg: color-mix(in srgb, var(--positive) 12%, var(--background));
+      --rule-gold-left: var(--rule-gold);
+      --tertiary-bright: var(--gold-bright);
+    }
+
     *, *::before, *::after { box-sizing: border-box; }
     html, body { overflow-x: clip; margin: 0; padding: 0; }
     header { position: static !important; }
