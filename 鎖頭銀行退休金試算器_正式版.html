@@ -1,0 +1,1657 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="tool">
+  <meta name="design-style" content="kiln">
+  <title>鎖頭銀行退休金試算器</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+
+      /* 1. Kiln base + 2. 韓國世宗大王配色與宣紙風格 (King Sejong Royal Palette & Rice Paper) */
+      --background: #f5f0e2;                 /* 古典宣紙米黃底色 */
+      --surface-container-low: #ede6d4;      /* 宣紙箋卡底色 */
+      --surface-container: #e4dbc3;          /* 溫潤宣紙次層 */
+      --surface-container-high: #d9ceb2;     /* 選取與懸停層 */
+      --paper-glow: rgba(255, 252, 244, 0.55);
+      --paper-fiber: rgba(155, 138, 102, 0.08);
+
+      /* Ink */
+      --on-surface: #1b1916;                 /* 松煙墨黑字體 */
+      --on-surface-variant: #565045;         /* 淡墨石色說明文字 */
+
+      /* Rules */
+      --outline: #1b1916;                    /* 主結構墨線 */
+      --outline-variant: #cdc2a8;            /* 宣紙細格線 */
+
+      /* Accents: 世宗大王深青袞龍袍色 + 朱紅印章色 */
+      --primary: #1a4b4f;                    /* 深青色（主操作與深青點綴） */
+      --primary-hover: #143b3e;              /* 深青懸停 */
+      --on-primary: #f5f0e2;
+      --primary-container: #dce6e4;          /* 淡青瓷底 */
+      --on-primary-container: #123639;
+      --secondary: #1a4b4f;                  /* 深青色：副標、基數標籤、步驟徽章 */
+      --tertiary: #a62c22;                   /* 朱紅印章色：落款篆印、重點數值、公保基數 */
+      --tertiary-container: #f2deda;         /* 淡朱砂底 */
+      --error: #a62c22;
+      --on-error: #f5f0e2;
+
+      /* Data series */
+      --data-1: #1a4b4f;                     /* 深青：45個退休金基數 */
+      --data-2: #a62c22;                     /* 朱紅：36個公保基數 */
+      --data-3: #8c6a32;                     /* 御金：月平均不休假加班費 */
+      --data-4: #1b1916;                     /* 墨黑 */
+      --data-context: #c8bda3;
+
+      /* Fonts */
+      --font-headline: 'Noto Serif TC', serif;
+      --font-body: 'Noto Sans TC', sans-serif;
+      --font-label: 'Geist Mono', 'Noto Sans TC', monospace;
+
+      /* Shape */
+      --rounded: 0.125rem;
+      --rounded-lg: 0.1875rem;
+      --rounded-full: 0.125rem;
+
+      /* Style effects */
+      --rule-sumi-left: 3px solid var(--secondary);
+      --rule-seal-left: 3px solid var(--tertiary);
+      --rule-sumi: 1px solid var(--outline);
+      --rule-linen: 1px solid var(--outline-variant);
+      --rule-double: 3px double var(--outline-variant);
+      --label-tracking: 0.06em;
+
+      /* 3. Shared tokens */
+      --positive: #1f5c44;
+      --warning: #8f6324;
+      --focus: #a62c22;
+
+      /* Type scale (Focused Tool) */
+      --display-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.35rem);
+      --headline-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+      --subhead-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+      --body-size: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
+      --label-size: 0.78rem;
+
+      /* Spacing scale (4pt base) */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+      --space-3xl: 6rem;
+
+      /* Motion */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+    }
+
+    /* Base reset */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { overflow-x: clip; margin: 0; padding: 0; }
+    header { position: static !important; }
+
+    body {
+      background-color: var(--background);
+      background-image:
+        radial-gradient(circle at 18% 12%, var(--paper-glow) 0%, transparent 52%),
+        radial-gradient(circle at 82% 88%, var(--paper-fiber) 0%, transparent 56%),
+        repeating-linear-gradient(
+          0deg,
+          transparent 0px,
+          transparent 27px,
+          var(--paper-fiber) 28px
+        );
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .page-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-lg);
+      padding: var(--space-lg);
+      max-width: 1180px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .page-grid * { min-width: 0; }
+
+    /* Classical Rice-Paper Sheet Frame */
+    .scroll-sheet {
+      border: var(--rule-linen);
+      box-shadow: inset 0 0 0 4px var(--background), inset 0 0 0 5px var(--outline-variant);
+      background-color: var(--background);
+      padding: var(--space-xl);
+      position: relative;
+    }
+
+    /* Masthead / Header */
+    .masthead {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--space-lg);
+      padding-bottom: var(--space-lg);
+      border-bottom: var(--rule-double);
+    }
+
+    .masthead-main {
+      flex: 1 1 auto;
+    }
+
+    .kicker {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 600;
+      color: var(--secondary);
+      letter-spacing: var(--label-tracking);
+      margin: 0 0 var(--space-xs) 0;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+
+    .crest-icon {
+      flex-shrink: 0;
+      color: var(--secondary);
+    }
+
+    h1.display-title {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--display-size);
+      line-height: 1.2;
+      margin: 0;
+      color: var(--on-surface);
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      color: var(--on-surface-variant);
+      margin: var(--space-sm) 0 0 0;
+      max-width: 65ch;
+      line-height: 1.65;
+    }
+
+    /* Vertical Cinnabar Seal Stamp (朱紅篆印) */
+    .seal-stamp {
+      border: 2px solid var(--tertiary);
+      color: var(--tertiary);
+      background-color: var(--tertiary-container);
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: 0.875rem;
+      letter-spacing: 0.18em;
+      padding: var(--space-sm) var(--space-xs);
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      line-height: 1.2;
+      border-radius: var(--rounded);
+      user-select: none;
+      flex-shrink: 0;
+      box-shadow: inset 0 0 0 1px var(--tertiary);
+    }
+
+    /* Primary Workspace: Asymmetric 2-column layout (Inputs vs Results) */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: var(--space-xl);
+      align-items: start;
+      padding-top: var(--space-lg);
+    }
+
+    .section-heading {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--headline-size);
+      color: var(--on-surface);
+      margin: 0 0 var(--space-xs) 0;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .section-heading-bar {
+      display: inline-block;
+      width: 4px;
+      height: 1.1em;
+      background-color: var(--tertiary);
+      border-radius: var(--rounded);
+    }
+
+    .section-desc {
+      font-size: 0.875rem;
+      color: var(--on-surface-variant);
+      margin: 0 0 var(--space-lg) 0;
+    }
+
+    /* Left Panel: Inputs */
+    .input-panel {
+      background-color: var(--surface-container-low);
+      border: var(--rule-linen);
+      border-top: 3px solid var(--secondary);
+      border-radius: var(--rounded);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .field-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--space-sm);
+    }
+
+    .field-label {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--on-surface);
+    }
+
+    .field-unit-badge {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--secondary);
+      background-color: var(--primary-container);
+      padding: 2px var(--space-sm);
+      border-radius: var(--rounded);
+      font-weight: 500;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .currency-prefix {
+      position: absolute;
+      left: var(--space-md);
+      font-family: var(--font-label);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--on-surface-variant);
+      pointer-events: none;
+    }
+
+    .number-input {
+      width: 100%;
+      min-height: 46px;
+      padding: var(--space-sm) var(--space-md) var(--space-sm) 3.25rem;
+      font-family: var(--font-label);
+      font-size: 1.25rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: var(--on-surface);
+      background-color: var(--background);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      transition: background-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out);
+    }
+
+    .number-input:hover {
+      background-color: var(--paper-glow);
+    }
+
+    .number-input:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--secondary);
+    }
+
+    .number-input.is-invalid {
+      box-shadow: 0 0 0 2px var(--error);
+      background-color: var(--tertiary-container);
+    }
+
+    .range-slider {
+      width: 100%;
+      height: 28px;
+      accent-color: var(--secondary);
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .range-scale {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-label);
+      font-size: 0.75rem;
+      color: var(--on-surface-variant);
+    }
+
+    .field-hint {
+      font-size: 0.8125rem;
+      color: var(--on-surface-variant);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .field-error {
+      font-size: 0.8125rem;
+      color: var(--error);
+      font-weight: 500;
+      margin: 0;
+      min-height: 1.2em;
+      display: none;
+    }
+
+    .field-error.visible {
+      display: block;
+    }
+
+    /* Presets & Actions */
+    .preset-section {
+      padding-top: var(--space-md);
+      border-top: var(--rule-linen);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .preset-label {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 600;
+      color: var(--on-surface-variant);
+    }
+
+    .preset-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+
+    .preset-btn {
+      min-height: 44px;
+      padding: var(--space-xs) var(--space-md);
+      background-color: var(--background);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      color: var(--on-surface);
+      font-size: 0.84rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+      text-align: left;
+    }
+
+    .preset-btn:hover {
+      background-color: var(--surface-container-high);
+    }
+
+    .preset-btn.active {
+      background-color: var(--primary-container);
+      color: var(--on-primary-container);
+      box-shadow: inset 0 0 0 1px var(--secondary);
+      font-weight: 600;
+    }
+
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-sm);
+      padding-top: var(--space-sm);
+    }
+
+    .btn-primary {
+      min-height: 44px;
+      padding: var(--space-sm) var(--space-lg);
+      background-color: var(--primary);
+      color: var(--on-primary);
+      border: 1px solid var(--primary);
+      border-radius: var(--rounded);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      min-height: 44px;
+      padding: var(--space-sm) var(--space-lg);
+      background-color: var(--background);
+      color: var(--tertiary);
+      border: 1px solid var(--tertiary);
+      border-radius: var(--rounded);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--tertiary-container);
+    }
+
+    .status-toast {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--positive);
+      min-height: 1.4em;
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+
+    /* Right Panel: Outputs (Lead with the Answer) */
+    .output-panel {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+    }
+
+    .hero-total-card {
+      background-color: var(--surface-container-low);
+      border: 1px solid var(--outline);
+      box-shadow: inset 0 0 0 3px var(--background), inset 0 0 0 4px var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: var(--space-lg) var(--space-xl);
+      position: relative;
+    }
+
+    .hero-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-xs);
+    }
+
+    .hero-kicker {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 600;
+      color: var(--secondary);
+      letter-spacing: var(--label-tracking);
+    }
+
+    .hero-formula-tag {
+      font-family: var(--font-label);
+      font-size: 0.75rem;
+      color: var(--tertiary);
+      background-color: var(--tertiary-container);
+      border: 1px solid var(--tertiary);
+      padding: 2px var(--space-sm);
+      border-radius: var(--rounded);
+      font-weight: 500;
+    }
+
+    .hero-amount {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: clamp(2rem, 1.4rem + 2.2vw, 3rem);
+      line-height: 1.15;
+      color: var(--on-surface);
+      font-variant-numeric: tabular-nums lining-nums;
+      margin: var(--space-xs) 0;
+    }
+
+    .hero-amount-unit {
+      font-size: 0.45em;
+      font-weight: 600;
+      color: var(--tertiary);
+      margin-right: var(--space-xs);
+      vertical-align: baseline;
+    }
+
+    .hero-sub-readout {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      font-size: 0.875rem;
+      color: var(--on-surface-variant);
+      margin-bottom: var(--space-md);
+    }
+
+    .hero-sub-readout strong {
+      color: var(--on-surface);
+      font-family: var(--font-label);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Stacked Proportion Bar */
+    .proportion-block {
+      padding-top: var(--space-md);
+      border-top: var(--rule-linen);
+    }
+
+    .proportion-bar {
+      display: flex;
+      width: 100%;
+      height: 18px;
+      border: 1px solid var(--outline);
+      border-radius: var(--rounded);
+      overflow: hidden;
+      background-color: var(--surface-container);
+    }
+
+    .prop-seg-pension {
+      background-color: var(--data-1);
+      height: 100%;
+      transition: width var(--dur-short) var(--ease-out);
+    }
+
+    .prop-seg-insurance {
+      background-color: var(--data-2);
+      height: 100%;
+      transition: width var(--dur-short) var(--ease-out);
+    }
+
+    .proportion-legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      margin-top: var(--space-sm);
+      font-size: 0.8125rem;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      color: var(--on-surface);
+    }
+
+    .legend-swatch-1 {
+      width: 12px;
+      height: 12px;
+      background-color: var(--data-1);
+      border-radius: var(--rounded);
+      display: inline-block;
+    }
+
+    .legend-swatch-2 {
+      width: 12px;
+      height: 12px;
+      background-color: var(--data-2);
+      border-radius: var(--rounded);
+      display: inline-block;
+    }
+
+    /* 2x2 Breakdown Cards (Kiln Washi Spine Style) */
+    .breakdown-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+      gap: var(--space-md);
+    }
+
+    .washi-card {
+      background-color: var(--surface-container-low);
+      border-left: var(--rule-sumi-left);
+      border-top: var(--rule-linen);
+      border-right: var(--rule-linen);
+      border-bottom: var(--rule-linen);
+      border-radius: var(--rounded);
+      padding: var(--space-md) var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .washi-card.accent-seal {
+      border-left: var(--rule-seal-left);
+    }
+
+    .washi-card .card-label {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 600;
+      color: var(--secondary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .washi-card.accent-seal .card-label {
+      color: var(--tertiary);
+    }
+
+    .washi-card .card-value {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: 1.5rem;
+      line-height: 1.25;
+      color: var(--on-surface);
+      font-variant-numeric: tabular-nums lining-nums;
+    }
+
+    .washi-card .card-formula {
+      font-family: var(--font-label);
+      font-size: 0.78rem;
+      color: var(--on-surface-variant);
+      background-color: var(--background);
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--rounded);
+      border: var(--rule-linen);
+      margin-top: var(--space-xs);
+    }
+
+    .washi-card .card-note {
+      font-size: 0.8125rem;
+      color: var(--on-surface-variant);
+      margin-top: 2px;
+    }
+
+    /* Step-by-Step Formula Walkthrough */
+    .steps-section {
+      margin-top: var(--space-xl);
+      padding-top: var(--space-lg);
+      border-top: var(--rule-double);
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+      gap: var(--space-md);
+      margin-top: var(--space-md);
+    }
+
+    .step-card {
+      background-color: var(--surface-container-low);
+      border: var(--rule-linen);
+      border-radius: var(--rounded);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .step-badge-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .step-seal {
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--secondary);
+      color: var(--on-primary);
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: 0.875rem;
+      border-radius: var(--rounded);
+      flex-shrink: 0;
+    }
+
+    .step-card.step-final .step-seal {
+      background-color: var(--tertiary);
+    }
+
+    .step-title {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--on-surface);
+      margin: 0;
+    }
+
+    .step-rule {
+      font-size: 0.84rem;
+      color: var(--on-surface-variant);
+      margin: 0;
+    }
+
+    .step-math {
+      font-family: var(--font-label);
+      font-size: 0.84rem;
+      color: var(--on-surface);
+      background-color: var(--background);
+      border-left: 2px solid var(--secondary);
+      padding: var(--space-sm);
+      border-radius: var(--rounded);
+      font-variant-numeric: tabular-nums;
+      line-height: 1.5;
+    }
+
+    .step-card.step-final .step-math {
+      border-left-color: var(--tertiary);
+      font-weight: 600;
+    }
+
+    /* Comparison Table Section */
+    .table-section {
+      margin-top: var(--space-xl);
+      padding-top: var(--space-lg);
+      border-top: var(--rule-linen);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: var(--space-md);
+    }
+
+    table.ledger-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ledger-table thead th {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 600;
+      color: var(--secondary);
+      text-align: right;
+      padding: var(--space-sm) var(--space-md);
+      border-top: var(--rule-sumi);
+      border-bottom: var(--rule-sumi);
+      background-color: var(--surface-container-low);
+      white-space: nowrap;
+    }
+
+    .ledger-table thead th:first-child {
+      text-align: left;
+    }
+
+    .ledger-table tbody td {
+      padding: var(--space-sm) var(--space-md);
+      text-align: right;
+      border-bottom: var(--rule-linen);
+      font-family: var(--font-label);
+      color: var(--on-surface);
+      white-space: nowrap;
+    }
+
+    .ledger-table tbody td:first-child {
+      text-align: left;
+      font-family: var(--font-body);
+      font-weight: 500;
+    }
+
+    .ledger-table tbody tr.current-row {
+      background-color: var(--primary-container);
+      font-weight: 700;
+    }
+
+    .ledger-table tbody tr.current-row td:first-child {
+      color: var(--secondary);
+      font-weight: 700;
+    }
+
+    .row-tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      padding: 1px var(--space-xs);
+      border: 1px solid var(--tertiary);
+      color: var(--tertiary);
+      background-color: var(--tertiary-container);
+      border-radius: var(--rounded);
+      margin-left: var(--space-xs);
+      vertical-align: middle;
+    }
+
+    /* Footer */
+    .sheet-footer {
+      margin-top: var(--space-xl);
+      padding-top: var(--space-md);
+      border-top: var(--rule-linen);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: var(--space-md);
+      font-size: 0.8125rem;
+      color: var(--on-surface-variant);
+    }
+
+    @media (max-width: 860px) {
+      .workspace-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page-grid {
+        padding: var(--space-sm);
+      }
+      .scroll-sheet {
+        padding: var(--space-md);
+      }
+      .masthead {
+        flex-direction: column-reverse;
+        gap: var(--space-md);
+      }
+      .seal-stamp {
+        writing-mode: horizontal-tb;
+        text-orientation: mixed;
+        padding: var(--space-xs) var(--space-sm);
+      }
+      .hero-total-card {
+        padding: var(--space-md);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+  <style>
+    .site-nav { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; max-width: 1180px; margin: 1rem auto 0; padding: 0 1.25rem; }
+    .site-nav a { color: var(--primary); border: 1px solid var(--outline-variant); background: var(--surface-container-low); padding: 0.45rem 0.75rem; text-decoration: none; font: 600 0.82rem/1.2 var(--font-label); }
+    .site-nav a:hover, .site-nav a:focus-visible { color: var(--on-primary); background: var(--primary); }
+    .site-nav a[aria-current="page"] { color: var(--on-primary); background: var(--primary); border-color: var(--primary); }
+  </style>
+</head>
+<body>
+  <nav class="site-nav" aria-label="網站導覽">
+    <a href="index.html">首頁</a>
+    <a href="鎖頭銀行退休金試算器_正式版.html" aria-current="page">綜合退休金</a>
+    <a href="鎖頭銀行退休金試算器_多情境版.html">多情境試算</a>
+    <a href="鎖頭銀行退休金試算器_公保.html">公保退休金</a>
+    <a href="鎖頭銀行退休金試算器_勞退新制.html">勞退新制</a>
+  </nav>
+  <main class="page-grid">
+    <article class="scroll-sheet">
+      <!-- Masthead -->
+      <header class="masthead">
+        <div class="masthead-main">
+          <p class="kicker">
+            <span>鎖頭銀行人事給付算定書</span>
+            <span>·</span>
+            <span>宣紙試算卷宗</span>
+          </p>
+          <div class="title-row">
+            <svg class="crest-icon" width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+              <rect x="4" y="4" width="28" height="28" rx="2" stroke="currentColor" stroke-width="1.75"/>
+              <path d="M12 16V12.5C12 9.18629 14.6863 6.5 18 6.5C21.3137 6.5 24 9.18629 24 12.5V16" stroke="currentColor" stroke-width="1.75"/>
+              <rect x="9" y="16" width="18" height="12" rx="1.5" fill="currentColor" fill-opacity="0.12" stroke="currentColor" stroke-width="1.75"/>
+              <circle cx="18" cy="21" r="2" fill="currentColor"/>
+              <path d="M18 23V25.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+            </svg>
+            <h1 class="display-title">鎖頭銀行退休金試算器</h1>
+          </div>
+          <p class="subtitle">
+            依鎖頭銀行退休金與公保養老給付併計規則設計：將 30 天不休假加班費（即一個月薪資）按 12 個月平均計入平均工資，即時核算 45 個退休金基數與 36 個公保基數總額。
+          </p>
+        </div>
+        <div class="seal-stamp" aria-hidden="true">鎖頭銀行算印</div>
+      </header>
+
+      <!-- Workspace -->
+      <section class="workspace-grid" aria-label="退休金互動試算區">
+        <!-- Left: Inputs -->
+        <div class="input-panel">
+          <div>
+            <h2 class="section-heading">
+              <span class="section-heading-bar" aria-hidden="true"></span>
+              薪資與保俸參數設定
+            </h2>
+            <p class="section-desc">輸入或拖曳調整下列數值，右側總額與步驟明細將即時連動更新。</p>
+          </div>
+
+          <!-- Input 1: 每月薪資 -->
+          <div class="field-group">
+            <div class="field-header">
+              <label class="field-label" for="input-salary">每月薪資</label>
+              <span class="field-unit-badge">預設 84,852 元</span>
+            </div>
+            <div class="input-wrapper">
+              <span class="currency-prefix" aria-hidden="true">NT$</span>
+              <input
+                type="number"
+                id="input-salary"
+                class="number-input"
+                min="0"
+                max="500000"
+                step="1"
+                value="84852"
+                inputmode="numeric"
+                oninput="syncSalaryFromInput(this.value)"
+              >
+            </div>
+            <input
+              type="range"
+              id="slider-salary"
+              class="range-slider"
+              min="30000"
+              max="200000"
+              step="100"
+              value="84852"
+              aria-label="每月薪資滑桿"
+              oninput="syncSalaryFromSlider(this.value)"
+            >
+            <div class="range-scale" aria-hidden="true">
+              <span>30,000 元</span>
+              <span>115,000 元</span>
+              <span>200,000 元</span>
+            </div>
+            <p class="field-hint">不休假加班費（30 天）等於一個月薪資，月平均按「每月薪資 ÷ 12」計入。</p>
+            <p id="error-salary" class="field-error" role="alert"></p>
+          </div>
+
+          <!-- Input 2: 公保保俸 -->
+          <div class="field-group">
+            <div class="field-header">
+              <label class="field-label" for="input-insurance">公保保俸</label>
+              <span class="field-unit-badge">預設 44,970 元</span>
+            </div>
+            <div class="input-wrapper">
+              <span class="currency-prefix" aria-hidden="true">NT$</span>
+              <input
+                type="number"
+                id="input-insurance"
+                class="number-input"
+                min="0"
+                max="200000"
+                step="1"
+                value="44970"
+                inputmode="numeric"
+                oninput="syncInsuranceFromInput(this.value)"
+              >
+            </div>
+            <input
+              type="range"
+              id="slider-insurance"
+              class="range-slider"
+              min="20000"
+              max="100000"
+              step="10"
+              value="44970"
+              aria-label="公保保俸滑桿"
+              oninput="syncInsuranceFromSlider(this.value)"
+            >
+            <div class="range-scale" aria-hidden="true">
+              <span>20,000 元</span>
+              <span>60,000 元</span>
+              <span>100,000 元</span>
+            </div>
+            <p class="field-hint">公保養老給付按 36 個基數計給，可依個人實際投保俸額自訂修改。</p>
+            <p id="error-insurance" class="field-error" role="alert"></p>
+          </div>
+
+          <!-- Quick Presets -->
+          <div class="preset-section">
+            <span class="preset-label">試算參考情境一鍵帶入</span>
+            <div class="preset-row">
+              <button type="button" id="preset-default" class="preset-btn active" onclick="applyPreset(84852, 44970, 'preset-default')">
+                基準範例（84,852 / 44,970）
+              </button>
+              <button type="button" id="preset-mid" class="preset-btn" onclick="applyPreset(68000, 38500, 'preset-mid')">
+                中階行員（68,000 / 38,500）
+              </button>
+              <button type="button" id="preset-senior" class="preset-btn" onclick="applyPreset(105000, 53075, 'preset-senior')">
+                資深主管（105,000 / 53,075）
+              </button>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="action-row">
+            <button type="button" class="btn-secondary" onclick="resetToDefaults()">
+              重設為預設值
+            </button>
+            <button type="button" class="btn-primary" onclick="copySummary()">
+              複製試算明細
+            </button>
+          </div>
+          <div id="action-status" class="status-toast" aria-live="polite"></div>
+        </div>
+
+        <!-- Right: Outputs -->
+        <div class="output-panel">
+          <!-- Hero Total Output -->
+          <div class="hero-total-card" aria-live="polite">
+            <div class="hero-top-row">
+              <span class="hero-kicker">鎖頭銀行退休金總額試算結果</span>
+              <span class="hero-formula-tag">(平均工資 × 45) + (公保保俸 × 36)</span>
+            </div>
+            <div id="out-total" class="hero-amount">
+              <span class="hero-amount-unit">NT$</span>5,755,455
+            </div>
+            <div class="hero-sub-readout">
+              <span>折合：<strong id="out-total-wan">575.55 萬元</strong></span>
+              <span>合計給付基數結構：<strong>45 個平均工資基數 + 36 個公保基數</strong></span>
+            </div>
+
+            <div class="proportion-block">
+              <div class="proportion-bar" role="img" aria-label="退休金兩大給付來源佔比長條圖">
+                <div id="bar-pension" class="prop-seg-pension" style="width: 71.87%;"></div>
+                <div id="bar-insurance" class="prop-seg-insurance" style="width: 28.13%;"></div>
+              </div>
+              <div class="proportion-legend">
+                <span class="legend-item">
+                  <span class="legend-swatch-1" aria-hidden="true"></span>
+                  45 個退休金基數：<strong id="legend-pension-pct">71.9%</strong>
+                </span>
+                <span class="legend-item">
+                  <span class="legend-swatch-2" aria-hidden="true"></span>
+                  36 個公保基數：<strong id="legend-insurance-pct">28.1%</strong>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4 Detailed Breakdown Cards -->
+          <div class="breakdown-grid">
+            <div class="washi-card">
+              <div class="card-label">
+                <span>月平均不休假加班費</span>
+                <span>每月薪資 ÷ 12</span>
+              </div>
+              <div id="out-overtime" class="card-value">NT$ 7,071</div>
+              <div id="formula-overtime" class="card-formula">84,852 ÷ 12 = 7,071 元/月</div>
+              <div class="card-note">30 天不休假加班費等於 1 個月薪資，按年均攤入月薪計算。</div>
+            </div>
+
+            <div class="washi-card">
+              <div class="card-label">
+                <span>平均工資（退休計算基準）</span>
+                <span>月薪 + 月均加班費</span>
+              </div>
+              <div id="out-avg-wage" class="card-value">NT$ 91,923</div>
+              <div id="formula-avg-wage" class="card-formula">84,852 + 7,071 = 91,923 元/月</div>
+              <div class="card-note">計入不休假加班費後，平均工資約為原月薪之 108.33%。</div>
+            </div>
+
+            <div class="washi-card">
+              <div class="card-label">
+                <span>45 個退休金基數金額</span>
+                <span>平均工資 × 45</span>
+              </div>
+              <div id="out-pension-45" class="card-value">NT$ 4,136,535</div>
+              <div id="formula-pension-45" class="card-formula">91,923 × 45 = 4,136,535 元</div>
+              <div id="note-pension-45" class="card-note">佔總退休金 71.87%</div>
+            </div>
+
+            <div class="washi-card accent-seal">
+              <div class="card-label">
+                <span>36 個公保基數金額</span>
+                <span>公保保俸 × 36</span>
+              </div>
+              <div id="out-insurance-36" class="card-value">NT$ 1,618,920</div>
+              <div id="formula-insurance-36" class="card-formula">44,970 × 36 = 1,618,920 元</div>
+              <div id="note-insurance-36" class="card-note">佔總退休金 28.13%</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Step-by-Step Breakdown -->
+      <section class="steps-section" aria-label="計算步驟解析">
+        <h2 class="section-heading">
+          <span class="section-heading-bar" aria-hidden="true"></span>
+          計算步驟解析
+        </h2>
+        <p class="section-desc">以下依序拆解目前輸入數值的四階段運算過程，便於核對每一筆金額來源。</p>
+
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-badge-row">
+              <span class="step-seal" aria-hidden="true">壹</span>
+              <h3 class="step-title">計算月平均不休假加班費</h3>
+            </div>
+            <p class="step-rule">30 天不休假加班費即為 1 個月薪資，除以 12 個月得出每月平均攤計金額。</p>
+            <div id="step-1-math" class="step-math">
+              每月薪資 84,852 ÷ 12<br>= 7,071 元
+            </div>
+          </div>
+
+          <div class="step-card">
+            <div class="step-badge-row">
+              <span class="step-seal" aria-hidden="true">貳</span>
+              <h3 class="step-title">核計平均工資</h3>
+            </div>
+            <p class="step-rule">將每月薪資加上月平均不休假加班費，形成退休金計算基準之平均工資。</p>
+            <div id="step-2-math" class="step-math">
+              84,852 + 7,071<br>= 91,923 元
+            </div>
+          </div>
+
+          <div class="step-card">
+            <div class="step-badge-row">
+              <span class="step-seal" aria-hidden="true">參</span>
+              <h3 class="step-title">分項乘算基數金額</h3>
+            </div>
+            <p class="step-rule">平均工資乘以 45 個基數，另以公保保俸乘以 36 個基數。</p>
+            <div id="step-3-math" class="step-math">
+              91,923 × 45 = 4,136,535 元<br>
+              44,970 × 36 = 1,618,920 元
+            </div>
+          </div>
+
+          <div class="step-card step-final">
+            <div class="step-badge-row">
+              <span class="step-seal" aria-hidden="true">肆</span>
+              <h3 class="step-title">加總退休金總額</h3>
+            </div>
+            <p class="step-rule">將 45 個退休金基數與 36 個公保基數相加，即為預估領取總額。</p>
+            <div id="step-4-math" class="step-math">
+              4,136,535 + 1,618,920<br>= 5,755,455 元
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sensitivity / Comparison Table -->
+      <section class="table-section" aria-label="薪資區間敏感度對照表">
+        <h2 class="section-heading">
+          <span class="section-heading-bar" aria-hidden="true"></span>
+          薪資調整試算對照表（固定目前公保保俸）
+        </h2>
+        <p class="section-desc">以您目前設定的公保保俸為基準，呈現每月薪資變動 -15% 至 +15% 時對平均工資與總退休金的影響。</p>
+        <div class="table-wrap">
+          <table class="ledger-table">
+            <thead>
+              <tr>
+                <th scope="col">試算情境</th>
+                <th scope="col">每月薪資</th>
+                <th scope="col">月均不休假加班費</th>
+                <th scope="col">平均工資</th>
+                <th scope="col">45 個基數金額</th>
+                <th scope="col">36 個公保基數</th>
+                <th scope="col">退休金總額</th>
+              </tr>
+            </thead>
+            <tbody id="sensitivity-tbody">
+              <!-- Dynamically rendered -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="sheet-footer">
+        <span>計算公式來源：鎖頭銀行退休金暨公保養老給付試算架構（平均工資 = 每月薪資 + 每月薪資 ÷ 12；總額 = 平均工資 × 45 + 公保保俸 × 36）。</span>
+        <span>註：遇非整數時運算過程保留完整精確度，金額顯示四捨五入至整數新台幣元。</span>
+      </footer>
+    </article>
+  </main>
+
+  <api-shim></api-shim>
+  <script>
+    const DEFAULT_SALARY = 84852;
+    const DEFAULT_INSURANCE = 44970;
+    const MAX_SALARY = 500000;
+    const MAX_INSURANCE = 200000;
+
+    let currentSalary = DEFAULT_SALARY;
+    let currentInsurance = DEFAULT_INSURANCE;
+    let activePresetId = 'preset-default';
+    let statusTimer = null;
+
+    function formatCurrency(num) {
+      return Math.round(num).toLocaleString('zh-TW');
+    }
+
+    function formatIntermediate(num) {
+      if (Math.abs(num - Math.round(num)) < 0.005) {
+        return Math.round(num).toLocaleString('zh-TW');
+      }
+      return num.toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function showActionStatus(message) {
+      const el = document.getElementById('action-status');
+      if (!el) return;
+      el.textContent = message;
+      if (statusTimer) clearTimeout(statusTimer);
+      statusTimer = setTimeout(function () {
+        const target = document.getElementById('action-status');
+        if (target) target.textContent = ``;
+      }, 3200);
+    }
+
+    function validateValue(raw, maxLimit, errorElId, inputElId, fieldName) {
+      const errEl = document.getElementById(errorElId);
+      const inputEl = document.getElementById(inputElId);
+      const trimmed = String(raw).trim();
+
+      if (trimmed === ``) {
+        if (errEl) {
+          errEl.textContent = `請輸入${fieldName}數值（目前暫以 0 元計算）。`;
+          errEl.classList.add('visible');
+        }
+        if (inputEl) inputEl.classList.add('is-invalid');
+        return 0;
+      }
+
+      const num = Number(trimmed);
+      if (Number.isNaN(num) || num < 0) {
+        if (errEl) {
+          errEl.textContent = `${fieldName}不可為負數或非數字，請輸入 0 以上的金額。`;
+          errEl.classList.add('visible');
+        }
+        if (inputEl) inputEl.classList.add('is-invalid');
+        return 0;
+      }
+
+      if (num > maxLimit) {
+        if (errEl) {
+          errEl.textContent = `${fieldName}已超過試算上限 ${formatCurrency(maxLimit)} 元，系統仍為您即時核算。`;
+          errEl.classList.add('visible');
+        }
+        if (inputEl) inputEl.classList.remove('is-invalid');
+        return num;
+      }
+
+      if (errEl) {
+        errEl.textContent = ``;
+        errEl.classList.remove('visible');
+      }
+      if (inputEl) inputEl.classList.remove('is-invalid');
+      return num;
+    }
+
+    function computePension(salary, insurance) {
+      const overtimeMonthly = salary / 12;
+      const avgWage = salary + overtimeMonthly;
+      const pension45 = avgWage * 45;
+      const insurance36 = insurance * 36;
+      const total = pension45 + insurance36;
+      const pensionPct = total > 0 ? (pension45 / total) * 100 : 50;
+      const insurancePct = total > 0 ? (insurance36 / total) * 100 : 50;
+
+      return {
+        salary: salary,
+        insurance: insurance,
+        overtimeMonthly: overtimeMonthly,
+        avgWage: avgWage,
+        pension45: pension45,
+        insurance36: insurance36,
+        total: total,
+        pensionPct: pensionPct,
+        insurancePct: insurancePct
+      };
+    }
+
+    function updatePresetButtons(presetId) {
+      activePresetId = presetId;
+      const buttons = document.querySelectorAll('.preset-btn');
+      buttons.forEach(function (btn) {
+        if (btn.id === presetId) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+
+    function detectMatchingPreset(salary, insurance) {
+      if (salary === 84852 && insurance === 44970) return 'preset-default';
+      if (salary === 68000 && insurance === 38500) return 'preset-mid';
+      if (salary === 105000 && insurance === 53075) return 'preset-senior';
+      return '';
+    }
+
+    function renderSensitivityTable(baseSalary, baseInsurance) {
+      const tbody = document.getElementById('sensitivity-tbody');
+      if (!tbody) return;
+
+      const multipliers = [
+        { label: `薪資 -15%`, factor: 0.85, isCurrent: false },
+        { label: `薪資 -10%`, factor: 0.90, isCurrent: false },
+        { label: `薪資 -5%`, factor: 0.95, isCurrent: false },
+        { label: `目前設定`, factor: 1.00, isCurrent: true },
+        { label: `薪資 +5%`, factor: 1.05, isCurrent: false },
+        { label: `薪資 +10%`, factor: 1.10, isCurrent: false },
+        { label: `薪資 +15%`, factor: 1.15, isCurrent: false }
+      ];
+
+      let html = ``;
+      multipliers.forEach(function (item) {
+        const s = Math.round(baseSalary * item.factor);
+        const res = computePension(s, baseInsurance);
+        const rowClass = item.isCurrent ? ` class="current-row"` : ``;
+        const badge = item.isCurrent ? `<span class="row-tag">目前試算</span>` : ``;
+        html += `
+          <tr${rowClass}>
+            <td>${item.label}${badge}</td>
+            <td>${formatCurrency(res.salary)} 元</td>
+            <td>${formatIntermediate(res.overtimeMonthly)} 元</td>
+            <td>${formatIntermediate(res.avgWage)} 元</td>
+            <td>${formatCurrency(res.pension45)} 元</td>
+            <td>${formatCurrency(res.insurance36)} 元</td>
+            <td><strong>${formatCurrency(res.total)} 元</strong></td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    }
+
+    function renderOutputs() {
+      const res = computePension(currentSalary, currentInsurance);
+
+      const outTotal = document.getElementById('out-total');
+      if (outTotal) {
+        outTotal.innerHTML = `<span class="hero-amount-unit">NT$</span>${formatCurrency(res.total)}`;
+      }
+
+      const outTotalWan = document.getElementById('out-total-wan');
+      if (outTotalWan) {
+        const wan = (res.total / 10000).toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        outTotalWan.textContent = `${wan} 萬元`;
+      }
+
+      const barPension = document.getElementById('bar-pension');
+      const barInsurance = document.getElementById('bar-insurance');
+      if (barPension && barInsurance) {
+        if (res.total > 0) {
+          barPension.style.width = `${res.pensionPct.toFixed(2)}%`;
+          barInsurance.style.width = `${res.insurancePct.toFixed(2)}%`;
+        } else {
+          barPension.style.width = `50%`;
+          barInsurance.style.width = `50%`;
+        }
+      }
+
+      const legPension = document.getElementById('legend-pension-pct');
+      const legInsurance = document.getElementById('legend-insurance-pct');
+      if (legPension) legPension.textContent = res.total > 0 ? `${res.pensionPct.toFixed(1)}%` : `0.0%`;
+      if (legInsurance) legInsurance.textContent = res.total > 0 ? `${res.insurancePct.toFixed(1)}%` : `0.0%`;
+
+      const outOvertime = document.getElementById('out-overtime');
+      if (outOvertime) outOvertime.textContent = `NT$ ${formatIntermediate(res.overtimeMonthly)}`;
+
+      const formulaOvertime = document.getElementById('formula-overtime');
+      if (formulaOvertime) {
+        formulaOvertime.textContent = `${formatCurrency(res.salary)} ÷ 12 = ${formatIntermediate(res.overtimeMonthly)} 元/月`;
+      }
+
+      const outAvgWage = document.getElementById('out-avg-wage');
+      if (outAvgWage) outAvgWage.textContent = `NT$ ${formatIntermediate(res.avgWage)}`;
+
+      const formulaAvgWage = document.getElementById('formula-avg-wage');
+      if (formulaAvgWage) {
+        formulaAvgWage.textContent = `${formatCurrency(res.salary)} + ${formatIntermediate(res.overtimeMonthly)} = ${formatIntermediate(res.avgWage)} 元/月`;
+      }
+
+      const outPension45 = document.getElementById('out-pension-45');
+      if (outPension45) outPension45.textContent = `NT$ ${formatCurrency(res.pension45)}`;
+
+      const formulaPension45 = document.getElementById('formula-pension-45');
+      if (formulaPension45) {
+        formulaPension45.textContent = `${formatIntermediate(res.avgWage)} × 45 = ${formatCurrency(res.pension45)} 元`;
+      }
+
+      const notePension45 = document.getElementById('note-pension-45');
+      if (notePension45) {
+        notePension45.textContent = res.total > 0 ? `佔總退休金 ${res.pensionPct.toFixed(2)}%` : `佔總退休金 0.00%`;
+      }
+
+      const outInsurance36 = document.getElementById('out-insurance-36');
+      if (outInsurance36) outInsurance36.textContent = `NT$ ${formatCurrency(res.insurance36)}`;
+
+      const formulaInsurance36 = document.getElementById('formula-insurance-36');
+      if (formulaInsurance36) {
+        formulaInsurance36.textContent = `${formatCurrency(res.insurance)} × 36 = ${formatCurrency(res.insurance36)} 元`;
+      }
+
+      const noteInsurance36 = document.getElementById('note-insurance-36');
+      if (noteInsurance36) {
+        noteInsurance36.textContent = res.total > 0 ? `佔總退休金 ${res.insurancePct.toFixed(2)}%` : `佔總退休金 0.00%`;
+      }
+
+      const step1 = document.getElementById('step-1-math');
+      if (step1) {
+        step1.innerHTML = `每月薪資 ${formatCurrency(res.salary)} ÷ 12<br>= ${formatIntermediate(res.overtimeMonthly)} 元`;
+      }
+
+      const step2 = document.getElementById('step-2-math');
+      if (step2) {
+        step2.innerHTML = `${formatCurrency(res.salary)} + ${formatIntermediate(res.overtimeMonthly)}<br>= ${formatIntermediate(res.avgWage)} 元`;
+      }
+
+      const step3 = document.getElementById('step-3-math');
+      if (step3) {
+        step3.innerHTML = `${formatIntermediate(res.avgWage)} × 45 = ${formatCurrency(res.pension45)} 元<br>${formatCurrency(res.insurance)} × 36 = ${formatCurrency(res.insurance36)} 元`;
+      }
+
+      const step4 = document.getElementById('step-4-math');
+      if (step4) {
+        step4.innerHTML = `${formatCurrency(res.pension45)} + ${formatCurrency(res.insurance36)}<br>= ${formatCurrency(res.total)} 元`;
+      }
+
+      renderSensitivityTable(res.salary, res.insurance);
+    }
+
+    async function persistState() {
+      if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === 'function') {
+        try {
+          await window.notebookAppApi.setAppState({
+            salary: currentSalary,
+            insurance: currentInsurance,
+            activePresetId: activePresetId
+          });
+        } catch (err) {
+          // Ignore persistence errors safely in preview
+        }
+      }
+    }
+
+    function syncSalaryFromInput(val) {
+      const parsed = validateValue(val, MAX_SALARY, 'error-salary', 'input-salary', '每月薪資');
+      currentSalary = parsed;
+      const slider = document.getElementById('slider-salary');
+      if (slider) {
+        const clamped = Math.min(Math.max(parsed, 30000), 200000);
+        slider.value = String(clamped);
+      }
+      updatePresetButtons(detectMatchingPreset(currentSalary, currentInsurance));
+      renderOutputs();
+      persistState();
+    }
+
+    function syncSalaryFromSlider(val) {
+      const parsed = Number(val);
+      currentSalary = Number.isNaN(parsed) ? DEFAULT_SALARY : parsed;
+      const input = document.getElementById('input-salary');
+      if (input) {
+        input.value = String(currentSalary);
+        input.classList.remove('is-invalid');
+      }
+      const errEl = document.getElementById('error-salary');
+      if (errEl) {
+        errEl.textContent = ``;
+        errEl.classList.remove('visible');
+      }
+      updatePresetButtons(detectMatchingPreset(currentSalary, currentInsurance));
+      renderOutputs();
+      persistState();
+    }
+
+    function syncInsuranceFromInput(val) {
+      const parsed = validateValue(val, MAX_INSURANCE, 'error-insurance', 'input-insurance', '公保保俸');
+      currentInsurance = parsed;
+      const slider = document.getElementById('slider-insurance');
+      if (slider) {
+        const clamped = Math.min(Math.max(parsed, 20000), 100000);
+        slider.value = String(clamped);
+      }
+      updatePresetButtons(detectMatchingPreset(currentSalary, currentInsurance));
+      renderOutputs();
+      persistState();
+    }
+
+    function syncInsuranceFromSlider(val) {
+      const parsed = Number(val);
+      currentInsurance = Number.isNaN(parsed) ? DEFAULT_INSURANCE : parsed;
+      const input = document.getElementById('input-insurance');
+      if (input) {
+        input.value = String(currentInsurance);
+        input.classList.remove('is-invalid');
+      }
+      const errEl = document.getElementById('error-insurance');
+      if (errEl) {
+        errEl.textContent = ``;
+        errEl.classList.remove('visible');
+      }
+      updatePresetButtons(detectMatchingPreset(currentSalary, currentInsurance));
+      renderOutputs();
+      persistState();
+    }
+
+    function applyValuesToDom(salary, insurance, presetId) {
+      currentSalary = salary;
+      currentInsurance = insurance;
+
+      const inputSalary = document.getElementById('input-salary');
+      const sliderSalary = document.getElementById('slider-salary');
+      const errSalary = document.getElementById('error-salary');
+      if (inputSalary) {
+        inputSalary.value = String(salary);
+        inputSalary.classList.remove('is-invalid');
+      }
+      if (sliderSalary) sliderSalary.value = String(Math.min(Math.max(salary, 30000), 200000));
+      if (errSalary) {
+        errSalary.textContent = ``;
+        errSalary.classList.remove('visible');
+      }
+
+      const inputInsurance = document.getElementById('input-insurance');
+      const sliderInsurance = document.getElementById('slider-insurance');
+      const errInsurance = document.getElementById('error-insurance');
+      if (inputInsurance) {
+        inputInsurance.value = String(insurance);
+        inputInsurance.classList.remove('is-invalid');
+      }
+      if (sliderInsurance) sliderInsurance.value = String(Math.min(Math.max(insurance, 20000), 100000));
+      if (errInsurance) {
+        errInsurance.textContent = ``;
+        errInsurance.classList.remove('visible');
+      }
+
+      updatePresetButtons(presetId || detectMatchingPreset(salary, insurance));
+      renderOutputs();
+    }
+
+    function applyPreset(salary, insurance, presetId) {
+      applyValuesToDom(salary, insurance, presetId);
+      persistState();
+      showActionStatus(`已套用試算情境。`);
+    }
+
+    function resetToDefaults() {
+      applyValuesToDom(DEFAULT_SALARY, DEFAULT_INSURANCE, 'preset-default');
+      persistState();
+      showActionStatus(`已重設為預設基準值（84,852 元 / 44,970 元）。`);
+    }
+
+    async function copySummary() {
+      const res = computePension(currentSalary, currentInsurance);
+      const summaryText = [
+        `【鎖頭銀行退休金試算明細】`,
+        `1. 每月薪資：NT$ ${formatCurrency(res.salary)}`,
+        `2. 月平均不休假加班費（每月薪資 ÷ 12）：NT$ ${formatIntermediate(res.overtimeMonthly)}`,
+        `3. 平均工資（每月薪資 + 月均不休假加班費）：NT$ ${formatIntermediate(res.avgWage)}`,
+        `4. 45 個退休金基數金額（平均工資 × 45）：NT$ ${formatCurrency(res.pension45)}`,
+        `5. 公保保俸：NT$ ${formatCurrency(res.insurance)}`,
+        `6. 36 個公保基數金額（公保保俸 × 36）：NT$ ${formatCurrency(res.insurance36)}`,
+        `----------------------------------------`,
+        `退休金總額：NT$ ${formatCurrency(res.total)}（約 ${(res.total / 10000).toFixed(2)} 萬元）`
+      ].join('\n');
+
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        try {
+          await navigator.clipboard.writeText(summaryText);
+          showActionStatus(`已複製試算明細至剪貼簿。`);
+          return;
+        } catch (err) {
+          // Fallback below
+        }
+      }
+
+      const tempArea = document.createElement('textarea');
+      tempArea.value = summaryText;
+      tempArea.setAttribute('readonly', '');
+      tempArea.style.position = 'fixed';
+      tempArea.style.opacity = '0';
+      document.body.appendChild(tempArea);
+      tempArea.select();
+      try {
+        document.execCommand('copy');
+        showActionStatus(`已複製試算明細至剪貼簿。`);
+      } catch (e) {
+        showActionStatus(`無法存取剪貼簿，請直接檢視畫面試算明細。`);
+      }
+      document.body.removeChild(tempArea);
+    }
+
+    async function initApp() {
+      if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === 'function') {
+        try {
+          const saved = await window.notebookAppApi.getAppState();
+          if (saved && typeof saved.salary === 'number' && typeof saved.insurance === 'number') {
+            applyValuesToDom(saved.salary, saved.insurance, saved.activePresetId || '');
+          } else {
+            applyValuesToDom(DEFAULT_SALARY, DEFAULT_INSURANCE, 'preset-default');
+          }
+        } catch (err) {
+          applyValuesToDom(DEFAULT_SALARY, DEFAULT_INSURANCE, 'preset-default');
+        }
+      } else {
+        applyValuesToDom(DEFAULT_SALARY, DEFAULT_INSURANCE, 'preset-default');
+      }
+
+      if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === 'function') {
+        window.notebookAppApi.notifyAppReady();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>

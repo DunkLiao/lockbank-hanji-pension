@@ -1,0 +1,2036 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="tool">
+  <meta name="design-style" content="kiln">
+  <title>鎖頭銀行 ‧ 退休金試算與養老藍圖</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root {
+      color-scheme: light;
+
+      /* 宣紙與韓紙底色 (Hanji / Xuan Rice Paper) */
+      --background: #f5f0e4;
+      --surface-container-low: #ebe4d4;
+      --surface-container: #e3dac6;
+      --surface-container-high: #d7ccb4;
+      --surface-paper-bright: #faf7ef;
+
+      /* 墨色 (Sumi Ink) */
+      --on-surface: #1d1a16;
+      --on-surface-variant: #554f44;
+
+      /* 邊線與龍紋框線 (Rules & Royal Gold Border) */
+      --outline: #1d1a16;
+      --outline-variant: #cfc5b0;
+      --outline-gold: #b88a36;
+
+      /* 韓國世宗大王御用配色 (Sejong Royal Palette) */
+      --primary: #2d5a4c;                /* 世宗翡翠青 (萬元鈔玉綠 / 朝鮮青瓷) */
+      --on-primary: #faf7ef;
+      --primary-container: #dce6e0;
+      --on-primary-container: #1b3b31;
+
+      --secondary: #7d5b1e;              /* 御用龍紋深金 (文獻與標籤輔色，通過對比規範) */
+      --secondary-soft: #efe6d1;
+
+      --tertiary: #962727;               /* 袞龍袍御朱紅 (印章、焦點與關鍵試算數據) */
+      --on-tertiary: #faf7ef;
+      --tertiary-container: #f2deda;
+
+      --indigo: #233d5b;                 /* 太極朝鮮靛藍 (勞保給付系列與結構線) */
+      --error: #962727;
+      --on-error: #faf7ef;
+
+      /* 語意與狀態色 */
+      --positive: #2d5a4c;
+      --warning: #7d5b1e;
+      --focus: #962727;
+
+      /* 圖表資料系列 */
+      --data-1: #2d5a4c;                 /* 翡翠青：勞退新制個人專戶 */
+      --data-2: #962727;                 /* 袞龍朱紅：總資產 / 鎖頭銀行加碼 */
+      --data-3: #233d5b;                 /* 朝鮮靛藍：勞保老年年金 */
+      --data-4: #8f6824;                 /* 御璽金：複利收益 */
+      --data-context: #b8ae99;           /* 累計投入本金 / 參考基準線 */
+
+      /* 字體家族 (繁體中文優先，搭配等寬數字) */
+      --font-headline: 'Noto Serif TC', serif;
+      --font-body: 'Noto Sans TC', sans-serif;
+      --font-label: 'Noto Sans TC', 'IBM Plex Mono', monospace;
+      --font-mono: 'IBM Plex Mono', 'Noto Sans TC', monospace;
+
+      /* 紙張手工裁切圓角 */
+      --rounded: 0.125rem;
+      --rounded-lg: 0.1875rem;
+
+      /* 宣紙纖維紋理 (SVG feTurbulence) */
+      --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='hanji'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.42  0 0 0 0 0.36  0 0 0 0 0.25  0 0 0 0.045 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23hanji)'/%3E%3C/svg%3E");
+
+      /* 風格線條與框飾 */
+      --rule-sumi-left: 3px solid var(--tertiary);
+      --rule-jade-left: 3px solid var(--primary);
+      --rule-indigo-left: 3px solid var(--indigo);
+      --rule-sumi: 1px solid var(--outline);
+      --rule-gold: 2px solid var(--outline-gold);
+      --rule-linen: 1px solid var(--outline-variant);
+
+      /* 字級比例 (Focused Tool) */
+      --display-size: clamp(1.75rem, 1.35rem + 1.3vw, 2.35rem);
+      --headline-size: clamp(1.2rem, 1.05rem + 0.5vw, 1.45rem);
+      --subhead-size: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+      --body-size: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
+      --label-size: 0.78rem;
+
+      /* 間距系統 (4pt base) */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.25rem;
+      --space-2xl: 3.5rem;
+
+      /* 動效曲線 */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      overflow-x: clip;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background);
+      background-image: var(--paper-grain);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header { position: static !important; }
+
+    button, input, select, textarea {
+      font-family: inherit;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    /* 主版面網格 */
+    .page-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-lg);
+      padding: var(--space-lg);
+      max-width: 1260px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .page-grid * { min-width: 0; }
+
+    /* 頁首卷頭 (Title Block) */
+    .masthead {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--space-md);
+      align-items: start;
+      padding-bottom: var(--space-lg);
+      border-bottom: var(--rule-gold);
+      position: relative;
+    }
+    .masthead::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -5px;
+      border-bottom: var(--rule-linen);
+      pointer-events: none;
+    }
+
+    .kicker-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-xs);
+    }
+
+    .kicker {
+      font-family: var(--font-label);
+      font-weight: 600;
+      font-size: var(--label-size);
+      color: var(--primary);
+      letter-spacing: 0.04em;
+    }
+
+    .bank-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.15rem 0.55rem;
+      background: var(--primary-container);
+      border: 1px solid var(--primary);
+      border-radius: var(--rounded);
+      color: var(--on-primary-container);
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .display-title {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--display-size);
+      line-height: 1.18;
+      margin: 0;
+      color: var(--on-surface);
+    }
+
+    .subhead-jade {
+      font-family: var(--font-headline);
+      font-weight: 500;
+      font-size: var(--subhead-size);
+      color: var(--primary);
+      margin: var(--space-xs) 0 0 0;
+      line-height: 1.5;
+      max-width: 65ch;
+    }
+
+    /* 御璽直書印章 (Kiln / Royal Seal Stamp) */
+    .seal-stamp {
+      border: 1.5px solid var(--tertiary);
+      background: var(--surface-paper-bright);
+      color: var(--tertiary);
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: 0.8125rem;
+      letter-spacing: 0.12em;
+      padding: 0.5rem 0.35rem;
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      border-radius: var(--rounded);
+      box-shadow: inset 0 0 0 2px var(--tertiary-container);
+      user-select: none;
+    }
+
+    /* 情境快速帶入列 (Presets & Actions Toolbar) */
+    .toolbar-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      padding-bottom: var(--space-sm);
+      border-bottom: var(--rule-linen);
+    }
+
+    .preset-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .toolbar-label {
+      font-size: var(--label-size);
+      font-weight: 600;
+      color: var(--on-surface-variant);
+      margin-right: var(--space-xs);
+    }
+
+    .action-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    /* 按鈕樣式 (宣紙方角與世宗配色) */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      min-height: 44px;
+      padding: 0.45rem 0.9rem;
+      border-radius: var(--rounded);
+      border: 1px solid var(--outline-variant);
+      background: var(--surface-paper-bright);
+      color: var(--on-surface);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-out),
+                  color var(--dur-micro) var(--ease-out),
+                  box-shadow var(--dur-micro) var(--ease-out);
+    }
+
+    .btn:hover {
+      background: var(--surface-container-low);
+      box-shadow: inset 0 0 0 1px var(--outline-gold);
+    }
+
+    .btn:active {
+      background: var(--surface-container);
+    }
+
+    .btn.is-active {
+      background: var(--primary);
+      color: var(--on-primary);
+      border-color: var(--primary);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--on-primary);
+      border-color: var(--primary);
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background: var(--on-primary-container);
+      box-shadow: none;
+    }
+
+    .btn-danger-outline {
+      border-color: var(--tertiary);
+      color: var(--tertiary);
+      background: var(--surface-paper-bright);
+    }
+
+    .btn-danger-outline:hover {
+      background: var(--tertiary-container);
+      box-shadow: none;
+    }
+
+    .btn-danger-armed {
+      background: var(--tertiary);
+      color: var(--on-tertiary);
+      border-color: var(--tertiary);
+    }
+
+    .status-toast {
+      font-size: 0.8125rem;
+      color: var(--primary);
+      font-weight: 600;
+      min-height: 1.4em;
+    }
+
+    /* 工具雙欄主工作區 (Inputs 左 / Outputs 右) */
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(320px, 410px) minmax(0, 1fr);
+      gap: var(--space-xl);
+      align-items: start;
+    }
+
+    /* 輸入區卡片 (韓紙與御墨/朱紅左脊) */
+    .inputs-panel {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+    }
+
+    .washi-section {
+      background: var(--surface-container-low);
+      background-image: var(--paper-grain);
+      border: 1px solid var(--outline-variant);
+      border-left: var(--rule-jade-left);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .washi-section.accent-crimson {
+      border-left: var(--rule-sumi-left);
+    }
+
+    .washi-section.accent-indigo {
+      border-left: var(--rule-indigo-left);
+    }
+
+    .section-header-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      padding-bottom: var(--space-sm);
+      border-bottom: var(--rule-linen);
+    }
+
+    .section-title {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: var(--headline-size);
+      margin: 0;
+      color: var(--on-surface);
+    }
+
+    .section-tag {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--secondary);
+      background: var(--secondary-soft);
+      border: 1px solid var(--outline-gold);
+      padding: 0.15rem 0.5rem;
+      border-radius: var(--rounded);
+      white-space: nowrap;
+    }
+
+    /* 表單欄位 (永遠顯示上方標籤) */
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .field-label-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    .field-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--on-surface);
+    }
+
+    .field-hint {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--on-surface-variant);
+    }
+
+    .input-pair {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 132px;
+      gap: var(--space-sm);
+      align-items: center;
+    }
+
+    .input-box {
+      width: 100%;
+      min-height: 44px;
+      padding: 0.5rem 0.75rem;
+      background: var(--surface-paper-bright);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      color: var(--on-surface);
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+      transition: box-shadow var(--dur-micro) var(--ease-out),
+                  background-color var(--dur-micro) var(--ease-out);
+    }
+
+    .input-box:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--primary);
+      background: var(--surface-paper-bright);
+    }
+
+    .input-box.salary-hero {
+      font-size: 1.25rem;
+      color: var(--tertiary);
+      border-color: var(--outline-gold);
+      background: var(--surface-paper-bright);
+    }
+
+    .select-box {
+      width: 100%;
+      min-height: 44px;
+      padding: 0.5rem 2rem 0.5rem 0.75rem;
+      background: var(--surface-paper-bright);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      color: var(--on-surface);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    /* 滑桿自訂樣式 */
+    input[type="range"] {
+      width: 100%;
+      height: 44px;
+      background: transparent;
+      cursor: pointer;
+      accent-color: var(--primary);
+      margin: 0;
+    }
+
+    input[type="range"].crimson-range {
+      accent-color: var(--tertiary);
+    }
+
+    .tier-readout {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+      margin-top: var(--space-xs);
+    }
+
+    .tier-pill {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      background: var(--surface-paper-bright);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      color: var(--on-surface-variant);
+    }
+
+    .tier-pill strong {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    /* 分段切換按鈕 (自提比例) */
+    .segment-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--space-xs);
+    }
+
+    .segment-btn {
+      min-height: 44px;
+      border: 1px solid var(--outline-variant);
+      background: var(--surface-paper-bright);
+      color: var(--on-surface);
+      border-radius: var(--rounded);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-out),
+                  color var(--dur-micro) var(--ease-out);
+    }
+
+    .segment-btn:hover {
+      background: var(--surface-container);
+    }
+
+    .segment-btn.is-active {
+      background: var(--tertiary);
+      color: var(--on-tertiary);
+      border-color: var(--tertiary);
+    }
+
+    .two-col-fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-md);
+    }
+
+    .validation-msg {
+      font-size: 0.8125rem;
+      color: var(--error);
+      font-weight: 600;
+      min-height: 1.2em;
+    }
+
+    /* 右側輸出區 (Outputs Panel) */
+    .outputs-panel {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+    }
+
+    /* 核心結論三卡片 (Lead with the Answer) */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+      gap: var(--space-md);
+    }
+
+    .kpi-card {
+      background: var(--surface-paper-bright);
+      background-image: var(--paper-grain);
+      border: 1px solid var(--outline-variant);
+      border-top: var(--rule-gold);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md) var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: var(--space-xs);
+    }
+
+    .kpi-card.hero-kpi {
+      background: var(--surface-container-low);
+      border-top: 3px solid var(--tertiary);
+      border-left: var(--rule-sumi-left);
+    }
+
+    .kpi-label {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--on-surface-variant);
+    }
+
+    .kpi-value {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: clamp(1.5rem, 1.25rem + 1vw, 2.05rem);
+      font-variant-numeric: tabular-nums lining-nums;
+      color: var(--on-surface);
+      line-height: 1.15;
+    }
+
+    .kpi-card.hero-kpi .kpi-value {
+      color: var(--tertiary);
+    }
+
+    .kpi-sub {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    .kpi-badge {
+      display: inline-block;
+      align-self: flex-start;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      border-radius: var(--rounded);
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+      border: 1px solid var(--primary);
+    }
+
+    .kpi-badge.is-warn {
+      background: var(--secondary-soft);
+      color: var(--secondary);
+      border-color: var(--outline-gold);
+    }
+
+    .kpi-badge.is-gap {
+      background: var(--tertiary-container);
+      color: var(--tertiary);
+      border-color: var(--tertiary);
+    }
+
+    /* 所得替代率視覺進度條 (Replacement Rate Bar) */
+    .replacement-panel {
+      background: var(--surface-paper-bright);
+      background-image: var(--paper-grain);
+      border: 1px solid var(--outline-variant);
+      border-left: var(--rule-jade-left);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md) var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .replacement-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--space-sm);
+    }
+
+    .replacement-title {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: 1.05rem;
+      margin: 0;
+    }
+
+    .stacked-bar-track {
+      position: relative;
+      height: 22px;
+      background: var(--surface-container);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      overflow: hidden;
+      display: flex;
+    }
+
+    .bar-seg {
+      height: 100%;
+      transition: width var(--dur-short) var(--ease-out);
+    }
+    .bar-seg-li { background: var(--indigo); }
+    .bar-seg-lp { background: var(--primary); }
+    .bar-seg-lb { background: var(--tertiary); }
+
+    .target-marker {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 70%;
+      width: 2px;
+      background: var(--on-surface);
+      pointer-events: none;
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      font-size: 0.8125rem;
+      color: var(--on-surface-variant);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .legend-swatch {
+      width: 11px;
+      height: 11px;
+      border-radius: var(--rounded);
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    /* 圖表容器 */
+    .chart-card {
+      background: var(--surface-paper-bright);
+      background-image: var(--paper-grain);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .chart-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--space-sm);
+      padding-bottom: var(--space-xs);
+      border-bottom: var(--rule-linen);
+    }
+
+    .chart-title {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: 1.125rem;
+      margin: 0;
+    }
+
+    .chart-subtitle {
+      font-size: 0.8125rem;
+      color: var(--on-surface-variant);
+    }
+
+    .chart-box {
+      position: relative;
+      width: 100%;
+      min-height: 310px;
+      height: 310px;
+    }
+
+    .chart-box.compact {
+      min-height: 250px;
+      height: 250px;
+    }
+
+    /* 雙欄分析對照 (結構圖 + 請領年齡表) */
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(310px, 100%), 1fr));
+      gap: var(--space-lg);
+    }
+
+    /* 宣紙古典表格 (Kiln / Charter Table Style) */
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table.hanji-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    table.hanji-table thead th {
+      text-align: left;
+      font-weight: 600;
+      color: var(--on-surface);
+      padding: 0.6rem 0.5rem;
+      border-top: var(--rule-sumi);
+      border-bottom: var(--rule-sumi);
+      background: var(--surface-container-low);
+      white-space: nowrap;
+    }
+
+    table.hanji-table thead th.num,
+    table.hanji-table tbody td.num {
+      text-align: right;
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    table.hanji-table tbody td {
+      padding: 0.6rem 0.5rem;
+      border-bottom: var(--rule-linen);
+      color: var(--on-surface);
+    }
+
+    table.hanji-table tbody tr.is-highlighted {
+      background: var(--primary-container);
+      font-weight: 600;
+    }
+
+    /* 明細與公式說明區 (Trust & Transparency) */
+    .breakdown-panel {
+      background: var(--surface-container-low);
+      background-image: var(--paper-grain);
+      border: 1px solid var(--outline-variant);
+      border-top: var(--rule-gold);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .detail-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+      gap: var(--space-md);
+    }
+
+    .detail-card {
+      background: var(--surface-paper-bright);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .detail-card h4 {
+      margin: 0;
+      font-family: var(--font-headline);
+      font-size: 1rem;
+      color: var(--primary);
+      border-bottom: var(--rule-linen);
+      padding-bottom: var(--space-xs);
+    }
+
+    .detail-card.crimson h4 {
+      color: var(--tertiary);
+    }
+
+    .detail-card.indigo h4 {
+      color: var(--indigo);
+    }
+
+    .detail-line {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      font-size: 0.84rem;
+      color: var(--on-surface-variant);
+    }
+
+    .detail-line strong {
+      font-family: var(--font-mono);
+      color: var(--on-surface);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .footnote {
+      font-size: 0.8125rem;
+      color: var(--on-surface-variant);
+      line-height: 1.65;
+      border-top: var(--rule-linen);
+      padding-top: var(--space-md);
+      margin: 0;
+    }
+
+    /* 響應式斷點 */
+    @media (max-width: 960px) {
+      .workspace {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page-grid {
+        padding: var(--space-md);
+        gap: var(--space-md);
+      }
+      .masthead {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .seal-stamp {
+        writing-mode: horizontal-tb;
+        justify-self: start;
+        padding: 0.25rem 0.65rem;
+      }
+      .input-pair {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .two-col-fields {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .chart-box {
+        min-height: 250px;
+        height: 250px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+  <style>
+    .site-nav { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; max-width: 1180px; margin: 1rem auto 0; padding: 0 1.25rem; }
+    .site-nav a { color: var(--primary); border: 1px solid var(--outline-variant); background: var(--surface-container-low); padding: 0.45rem 0.75rem; text-decoration: none; font: 600 0.82rem/1.2 var(--font-label); }
+    .site-nav a:hover, .site-nav a:focus-visible { color: var(--on-primary); background: var(--primary); }
+    .site-nav a[aria-current="page"] { color: var(--on-primary); background: var(--primary); border-color: var(--primary); }
+  </style>
+</head>
+<body>
+  <nav class="site-nav" aria-label="網站導覽">
+    <a href="index.html">首頁</a>
+    <a href="鎖頭銀行退休金試算器_正式版.html">綜合退休金</a>
+    <a href="鎖頭銀行退休金試算器_多情境版.html" aria-current="page">多情境試算</a>
+    <a href="鎖頭銀行退休金試算器_公保.html">公保退休金</a>
+    <a href="鎖頭銀行退休金試算器_勞退新制.html">勞退新制</a>
+  </nav>
+  <main class="page-grid">
+    <!-- 頁首：世宗御璽與宣紙開卷 -->
+    <header class="masthead">
+      <div>
+        <div class="kicker-row">
+          <span class="kicker">TAIWAN PENSION &amp; RETIREMENT PLANNER</span>
+          <span class="bank-badge">鎖頭銀行 ‧ 退休準備金專戶試算</span>
+        </div>
+        <h1 class="display-title">退休金試算與養老藍圖</h1>
+        <p class="subhead-jade">
+          輸入您的每月薪資，即時推估「勞保老年年金」、「勞退新制個人專戶」與「鎖頭銀行自主備老儲蓄」之複利累積與退休後每月現金流。
+        </p>
+      </div>
+      <div class="seal-stamp" aria-label="鎖頭銀行御算">鎖頭銀行‧御算</div>
+    </header>
+
+    <!-- 情境帶入與匯出列 -->
+    <section class="toolbar-row" aria-label="情境範本與檔案操作">
+      <div class="preset-group">
+        <span class="toolbar-label">快速帶入情境：</span>
+        <button type="button" class="btn" id="preset-starter" onclick="applyPreset('starter')">初入職場 NT$35,000</button>
+        <button type="button" class="btn is-active" id="preset-mid" onclick="applyPreset('mid')">中堅世代 NT$58,000</button>
+        <button type="button" class="btn" id="preset-senior" onclick="applyPreset('senior')">管理專才 NT$95,000</button>
+        <button type="button" class="btn" id="preset-sprint" onclick="applyPreset('sprint')">樂齡衝刺 NT$72,000</button>
+      </div>
+      <div class="action-group">
+        <span class="status-toast" id="status-toast" role="status" aria-live="polite"></span>
+        <button type="button" class="btn btn-primary" onclick="exportCsv()">匯出試算表 CSV</button>
+        <button type="button" class="btn btn-danger-outline" id="btn-reset" onclick="handleReset(this)">重設預設值</button>
+      </div>
+    </section>
+
+    <!-- 主工具工作區：左輸入、右試算結果 -->
+    <div class="workspace">
+      <!-- 左欄：參數輸入 -->
+      <aside class="inputs-panel" aria-label="退休試算參數輸入">
+        <!-- 1. 核心薪資輸入 -->
+        <section class="washi-section accent-crimson">
+          <div class="section-header-row">
+            <h2 class="section-title">一、每月薪資與職涯設定</h2>
+            <span class="section-tag">核心參數</span>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="input-salary">每月薪資總額（新台幣 NT$）</label>
+              <span class="field-hint">含本薪與經常性津貼</span>
+            </div>
+            <div class="input-pair">
+              <input type="range" id="slider-salary" class="crimson-range" min="28590" max="200000" step="500" value="58000" oninput="onSalarySlider(this.value)">
+              <input type="number" id="input-salary" class="input-box salary-hero" min="0" max="1000000" step="500" value="58000" oninput="onSalaryInput(this.value)">
+            </div>
+            <div class="tier-readout" id="tier-readout">
+              <span class="tier-pill">勞保投保級距：<strong id="badge-li-tier">NT$ 45,800</strong></span>
+              <span class="tier-pill">勞退提繳級距：<strong id="badge-lp-tier">NT$ 60,800</strong></span>
+            </div>
+          </div>
+
+          <div class="two-col-fields">
+            <div class="field-group">
+              <label class="field-label" for="input-current-age">目前年齡（歲）</label>
+              <input type="number" id="input-current-age" class="input-box" min="18" max="69" value="35" oninput="onAgeChange()">
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="input-retire-age">預計退休年齡（歲）</label>
+              <input type="number" id="input-retire-age" class="input-box" min="50" max="75" value="65" oninput="onAgeChange()">
+            </div>
+          </div>
+
+          <div class="two-col-fields">
+            <div class="field-group">
+              <label class="field-label" for="input-li-years">已累積勞保年資（年）</label>
+              <input type="number" id="input-li-years" class="input-box" min="0" max="45" step="0.5" value="10" oninput="onParamInput()">
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="input-life-exp">預估平均餘命（歲）</label>
+              <input type="number" id="input-life-exp" class="input-box" min="70" max="100" value="84" oninput="onParamInput()">
+            </div>
+          </div>
+
+          <div class="validation-msg" id="validation-msg" role="alert"></div>
+        </section>
+
+        <!-- 2. 勞退新制設定 -->
+        <section class="washi-section">
+          <div class="section-header-row">
+            <h2 class="section-title">二、勞退新制與節稅試算</h2>
+            <span class="section-tag">法定保障</span>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <span class="field-label">勞工自願提繳比例（免計入當年度所得稅）</span>
+              <span class="field-hint" id="voluntary-amt-hint">NT$ 3,648 / 月</span>
+            </div>
+            <div class="segment-grid" role="group" aria-label="勞工自願提繳比例">
+              <button type="button" class="segment-btn" id="vol-btn-0" onclick="setVoluntaryRate(0)">0%</button>
+              <button type="button" class="segment-btn" id="vol-btn-2" onclick="setVoluntaryRate(2)">2%</button>
+              <button type="button" class="segment-btn" id="vol-btn-4" onclick="setVoluntaryRate(4)">4%</button>
+              <button type="button" class="segment-btn is-active" id="vol-btn-6" onclick="setVoluntaryRate(6)">6%</button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="input-lp-balance">目前勞退專戶累計金額（NT$）</label>
+              <span class="field-hint">含過去提繳與分紅</span>
+            </div>
+            <input type="number" id="input-lp-balance" class="input-box" min="0" max="20000000" step="10000" value="420000" oninput="onParamInput()">
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="input-lp-return">預估勞退專戶年化報酬率（%）</label>
+              <span class="field-hint">保證收益參照鎖頭銀行二年期定存</span>
+            </div>
+            <div class="input-pair">
+              <input type="range" id="slider-lp-return" min="1.5" max="8.0" step="0.1" value="4.0" oninput="onReturnSlider(this.value)">
+              <input type="number" id="input-lp-return" class="input-box" min="0" max="15" step="0.1" value="4.0" oninput="onReturnInput(this.value)">
+            </div>
+          </div>
+
+          <div class="two-col-fields">
+            <div class="field-group">
+              <label class="field-label" for="input-emp-rate">雇主提繳率（%）</label>
+              <input type="number" id="input-emp-rate" class="input-box" min="6" max="15" step="0.5" value="6" oninput="onParamInput()">
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="select-tax-rate">綜合所得稅適用稅率</label>
+              <select id="select-tax-rate" class="select-box" onchange="onParamInput()">
+                <option value="5">5%（淨所得 59 萬以下）</option>
+                <option value="12" selected>12%（59萬–133萬）</option>
+                <option value="20">20%（133萬–266萬）</option>
+                <option value="30">30%（266萬–498萬）</option>
+                <option value="40">40%（498萬以上）</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. 鎖頭銀行自主準備金專戶 -->
+        <section class="washi-section accent-indigo">
+          <div class="section-header-row">
+            <h2 class="section-title">三、鎖頭銀行退休準備專戶</h2>
+            <span class="section-tag">自主加碼</span>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="input-lb-monthly">每月存入鎖頭銀行專戶金額（NT$）</label>
+              <span class="field-hint">0 表示僅算勞保與勞退</span>
+            </div>
+            <div class="input-pair">
+              <input type="range" id="slider-lb-monthly" min="0" max="50000" step="1000" value="5000" oninput="onLbMonthlySlider(this.value)">
+              <input type="number" id="input-lb-monthly" class="input-box" min="0" max="500000" step="500" value="5000" oninput="onLbMonthlyInput(this.value)">
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="input-lb-return">鎖頭銀行退休信託預估年化率（%）</label>
+              <span class="field-hint">定存與平衡配置基準</span>
+            </div>
+            <div class="input-pair">
+              <input type="range" id="slider-lb-return" min="1.0" max="8.0" step="0.1" value="3.5" oninput="onLbReturnSlider(this.value)">
+              <input type="number" id="input-lb-return" class="input-box" min="0" max="15" step="0.1" value="3.5" oninput="onLbReturnInput(this.value)">
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <!-- 右欄：結果與分析儀表板 -->
+      <section class="outputs-panel" aria-label="退休金試算結果與圖表分析">
+        <!-- 核心 KPI 卡片 -->
+        <div class="kpi-grid">
+          <article class="kpi-card hero-kpi">
+            <span class="kpi-label">退休後預估每月總領（NT$/月）</span>
+            <div class="kpi-value" id="kpi-monthly-total">NT$ 0</div>
+            <span class="kpi-sub" id="kpi-monthly-breakdown">勞保 0 + 勞退 0 + 鎖頭銀行 0</span>
+          </article>
+
+          <article class="kpi-card">
+            <span class="kpi-label">退休時專戶累積總資產</span>
+            <div class="kpi-value" id="kpi-lump-total">NT$ 0</div>
+            <span class="kpi-sub" id="kpi-lump-sub">距退休尚有 30 年（含複利）</span>
+          </article>
+
+          <article class="kpi-card">
+            <span class="kpi-label">實質所得替代率與節稅效益</span>
+            <div class="kpi-value" id="kpi-replacement">0.0%</div>
+            <div>
+              <span class="kpi-badge" id="kpi-replacement-badge">目標 70%</span>
+            </div>
+            <span class="kpi-sub" id="kpi-tax-saved">自提每年省稅 NT$ 0</span>
+          </article>
+        </div>
+
+        <!-- 所得替代率結構條 -->
+        <div class="replacement-panel">
+          <div class="replacement-header">
+            <h3 class="replacement-title">所得替代率結構（對比目前月薪 <span id="lbl-current-salary">NT$ 58,000</span>）</h3>
+            <span class="field-hint" id="lbl-gap-note">理想退休基準線為 70%</span>
+          </div>
+          <div class="stacked-bar-track" role="img" aria-label="退休金三層所得替代率比例圖">
+            <div class="bar-seg bar-seg-li" id="bar-li" style="width: 0%;"></div>
+            <div class="bar-seg bar-seg-lp" id="bar-lp" style="width: 0%;"></div>
+            <div class="bar-seg bar-seg-lb" id="bar-lb" style="width: 0%;"></div>
+            <div class="target-marker" title="建議退休所得替代率 70%"></div>
+          </div>
+          <div class="legend-row">
+            <span class="legend-item"><span class="legend-swatch" style="background: var(--indigo);"></span>勞保老年年金：<strong id="leg-li">0%</strong></span>
+            <span class="legend-item"><span class="legend-swatch" style="background: var(--primary);"></span>勞退新制月領：<strong id="leg-lp">0%</strong></span>
+            <span class="legend-item"><span class="legend-swatch" style="background: var(--tertiary);"></span>鎖頭銀行專戶月領：<strong id="leg-lb">0%</strong></span>
+            <span class="legend-item"><span class="legend-swatch" style="background: var(--on-surface);"></span>黑線標記：70% 理想基準</span>
+          </div>
+        </div>
+
+        <!-- 資產累積曲線圖 -->
+        <article class="chart-card">
+          <div class="chart-head">
+            <h3 class="chart-title">退休前資產複利累積軌跡</h3>
+            <span class="chart-subtitle">由目前年齡至退休年齡之年度累積變化（單位：新台幣元）</span>
+          </div>
+          <div class="chart-box">
+            <canvas id="chart-growth"></canvas>
+          </div>
+        </article>
+
+        <!-- 雙欄對照：自提比較圖 & 請領年齡表 -->
+        <div class="analytics-grid">
+          <article class="chart-card">
+            <div class="chart-head">
+              <h3 class="chart-title">勞退自提 0% vs 6% 月領差距</h3>
+              <span class="chart-subtitle">自提比例對退休後每月總收入之影響</span>
+            </div>
+            <div class="chart-box compact">
+              <canvas id="chart-compare"></canvas>
+            </div>
+          </article>
+
+          <article class="chart-card">
+            <div class="chart-head">
+              <h3 class="chart-title">勞保請領年齡增減給對照表</h3>
+              <span class="chart-subtitle">法定 65 歲起領，每差 1 年增減 4%（最多 ±20%）</span>
+            </div>
+            <div class="table-wrap">
+              <table class="hanji-table">
+                <thead>
+                  <tr>
+                    <th>請領年齡</th>
+                    <th>增減比例</th>
+                    <th class="num">勞保月領</th>
+                    <th class="num">每月合計</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-claim-ages"></tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+
+        <!-- 計算明細與公式依據 -->
+        <section class="breakdown-panel" aria-label="計算公式與鎖頭銀行專戶明細">
+          <div class="section-header-row">
+            <h3 class="section-title">試算明細與公式依據</h3>
+            <span class="section-tag">透明驗證</span>
+          </div>
+
+          <div class="detail-cards">
+            <div class="detail-card indigo">
+              <h4>第一層：勞工保險老年年金</h4>
+              <div class="detail-line"><span>最高 60 個月平均投保薪資</span><strong id="det-li-salary">NT$ 0</strong></div>
+              <div class="detail-line"><span>退休時預估總投保年資</span><strong id="det-li-years">0 年</strong></div>
+              <div class="detail-line"><span>請領年齡調整係數</span><strong id="det-li-factor">100%</strong></div>
+              <div class="detail-line"><span>B 式月領（薪資×年資×1.55%）</span><strong id="det-li-monthly">NT$ 0</strong></div>
+            </div>
+
+            <div class="detail-card">
+              <h4>第二層：勞退新制個人專戶</h4>
+              <div class="detail-line"><span>月提繳總額（雇主＋自提）</span><strong id="det-lp-contrib">NT$ 0 / 月</strong></div>
+              <div class="detail-line"><span>投入本金合計（含現有餘額）</span><strong id="det-lp-principal">NT$ 0</strong></div>
+              <div class="detail-line"><span>退休時專戶預估總額</span><strong id="det-lp-total">NT$ 0</strong></div>
+              <div class="detail-line"><span>依平均餘命折算月領金額</span><strong id="det-lp-monthly">NT$ 0 / 月</strong></div>
+            </div>
+
+            <div class="detail-card crimson">
+              <h4>第三層：鎖頭銀行退休準備專戶</h4>
+              <div class="detail-line"><span>每月固定存入鎖頭銀行專戶</span><strong id="det-lb-contrib">NT$ 0 / 月</strong></div>
+              <div class="detail-line"><span>累計存入本金</span><strong id="det-lb-principal">NT$ 0</strong></div>
+              <div class="detail-line"><span>鎖頭銀行專戶預估期末總值</span><strong id="det-lb-total">NT$ 0</strong></div>
+              <div class="detail-line"><span>退休期分年提領每月補助</span><strong id="det-lb-monthly">NT$ 0 / 月</strong></div>
+            </div>
+          </div>
+
+          <p class="footnote">
+            <strong>計算說明與資料基準：</strong>
+            本試算器依據現行《勞工保險條例》與《勞工退休金條例》建構。勞保投保薪資上限為 NT$45,800，投保滿 15 年以上依 A/B 式擇優發給月領年金（未滿 15 年則採一次請領給付，系統將自動顯示一次金預估）；勞退新制月提繳工資分級上限為 NT$150,000，法定最低保證收益參照鎖頭銀行等指定行庫二年期定期存款利率平均計算，勞退月領係以退休時專戶總額依預估平均餘命按年金現值折算（預設 1.5% 月領期利率）。本頁面所有數值與鎖頭銀行自主配置試算均僅供個人財務規劃參考。
+          </p>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <api-shim></api-shim>
+  <script>
+    // 勞保投保薪資分級表 (上限 45,800)
+    const LI_TIERS = [
+      28590, 28800, 30300, 31800, 33300, 34800,
+      36300, 38200, 40100, 42000, 43900, 45800
+    ];
+
+    // 勞退新制月提繳工資分級表 (上限 150,000)
+    const LP_TIERS = [
+      28590, 28800, 30300, 31800, 33300, 34800, 36300, 38200, 40100,
+      42000, 43900, 45800, 48200, 50600, 53000, 55400, 57800, 60800,
+      63800, 66800, 69800, 72800, 76500, 80200, 83900, 87600, 92100,
+      96600, 101100, 105600, 110100, 115500, 120900, 126300, 131700,
+      137100, 142500, 147900, 150000
+    ];
+
+    const DEFAULT_STATE = {
+      salary: 58000,
+      currentAge: 35,
+      retireAge: 65,
+      liPastYears: 10,
+      lifeExpectancy: 84,
+      voluntaryRate: 6,
+      lpBalance: 420000,
+      lpReturn: 4.0,
+      employerRate: 6,
+      taxRate: 12,
+      lbMonthly: 5000,
+      lbReturn: 3.5,
+      activePreset: 'mid'
+    };
+
+    const PRESETS = {
+      starter: {
+        salary: 35000, currentAge: 26, retireAge: 65, liPastYears: 2,
+        lifeExpectancy: 85, voluntaryRate: 0, lpBalance: 60000, lpReturn: 4.5,
+        employerRate: 6, taxRate: 5, lbMonthly: 3000, lbReturn: 3.5, activePreset: 'starter'
+      },
+      mid: {
+        salary: 58000, currentAge: 35, retireAge: 65, liPastYears: 10,
+        lifeExpectancy: 84, voluntaryRate: 6, lpBalance: 420000, lpReturn: 4.0,
+        employerRate: 6, taxRate: 12, lbMonthly: 5000, lbReturn: 3.5, activePreset: 'mid'
+      },
+      senior: {
+        salary: 95000, currentAge: 42, retireAge: 65, liPastYears: 17,
+        lifeExpectancy: 84, voluntaryRate: 6, lpBalance: 1350000, lpReturn: 4.0,
+        employerRate: 6, taxRate: 20, lbMonthly: 15000, lbReturn: 3.8, activePreset: 'senior'
+      },
+      sprint: {
+        salary: 72000, currentAge: 53, retireAge: 65, liPastYears: 25,
+        lifeExpectancy: 85, voluntaryRate: 6, lpBalance: 1850000, lpReturn: 3.5,
+        employerRate: 6, taxRate: 12, lbMonthly: 18000, lbReturn: 3.2, activePreset: 'sprint'
+      }
+    };
+
+    let appState = Object.assign({}, DEFAULT_STATE);
+    let growthChart = null;
+    let compareChart = null;
+    let lastComputed = null;
+
+    function getCssVar(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function fmtNT(num) {
+      const n = Math.round(Number(num) || 0);
+      return `NT$ ${n.toLocaleString('zh-TW')}`;
+    }
+
+    function mapTier(salary, tiers) {
+      const s = Math.max(0, Number(salary) || 0);
+      for (let i = 0; i < tiers.length; i++) {
+        if (s <= tiers[i]) return tiers[i];
+      }
+      return tiers[tiers.length - 1];
+    }
+
+    function estimateTaxRate(monthlySalary) {
+      const annual = monthlySalary * 12;
+      const taxable = Math.max(0, annual - 446000);
+      if (taxable <= 590000) return 5;
+      if (taxable <= 1330000) return 12;
+      if (taxable <= 2660000) return 20;
+      if (taxable <= 4980000) return 30;
+      return 40;
+    }
+
+    // 計算未來值與逐年軌跡
+    function calcPensionModel(st) {
+      const salary = Math.max(0, Number(st.salary) || 0);
+      const currentAge = Math.min(69, Math.max(18, Number(st.currentAge) || 35));
+      const rawRetireAge = Math.min(75, Math.max(50, Number(st.retireAge) || 65));
+      const retireAge = Math.max(currentAge + 1, rawRetireAge);
+      const lifeExp = Math.max(retireAge + 5, Math.min(100, Number(st.lifeExpectancy) || 84));
+      const workYears = Math.max(1, retireAge - currentAge);
+      const liPastYears = Math.max(0, Number(st.liPastYears) || 0);
+      const totalLiYears = liPastYears + workYears;
+
+      const liTier = mapTier(salary, LI_TIERS);
+      const lpTier = mapTier(salary, LP_TIERS);
+
+      // 勞保老年年金 (法定基準年齡 65 歲，60-70 歲加減 4%/年)
+      const diffYears = Math.max(-5, Math.min(5, retireAge - 65));
+      const liAgeFactor = 1 + diffYears * 0.04;
+      let liMonthly = 0;
+      let liLumpSum = 0;
+      const liEligibleMonthly = totalLiYears >= 15;
+      if (liEligibleMonthly) {
+        const formulaA = liTier * totalLiYears * 0.00775 + 3000;
+        const formulaB = liTier * totalLiYears * 0.0155;
+        liMonthly = Math.max(formulaA, formulaB) * liAgeFactor;
+      } else {
+        // 未滿15年一次請領估算
+        const months = Math.min(45, totalLiYears);
+        liLumpSum = liTier * months;
+      }
+
+      // 勞退新制累積試算
+      const empRate = Math.max(0, Number(st.employerRate) || 6) / 100;
+      const volRate = Math.max(0, Math.min(6, Number(st.voluntaryRate) || 0)) / 100;
+      const lpMonthlyContrib = lpTier * (empRate + volRate);
+      const lpVolMonthly = lpTier * volRate;
+      const lpAnnualReturn = Math.max(0, Number(st.lpReturn) || 0) / 100;
+      const lpRm = lpAnnualReturn / 12;
+
+      // 鎖頭銀行自主備老試算
+      const lbMonthlyContrib = Math.max(0, Number(st.lbMonthly) || 0);
+      const lbAnnualReturn = Math.max(0, Number(st.lbReturn) || 0) / 100;
+      const lbRm = lbAnnualReturn / 12;
+
+      const labels = [];
+      const seriesPrincipal = [];
+      const seriesLpTotal = [];
+      const seriesAllTotal = [];
+
+      let lpBal = Math.max(0, Number(st.lpBalance) || 0);
+      let lbBal = 0;
+      let lpPrincipal = lpBal;
+      let lbPrincipal = 0;
+
+      labels.push(`${currentAge}歲`);
+      seriesPrincipal.push(Math.round(lpPrincipal + lbPrincipal));
+      seriesLpTotal.push(Math.round(lpBal));
+      seriesAllTotal.push(Math.round(lpBal + lbBal));
+
+      for (let y = 1; y <= workYears; y++) {
+        for (let m = 0; m < 12; m++) {
+          lpBal = lpBal * (1 + lpRm) + lpMonthlyContrib;
+          lbBal = lbBal * (1 + lbRm) + lbMonthlyContrib;
+        }
+        lpPrincipal += lpMonthlyContrib * 12;
+        lbPrincipal += lbMonthlyContrib * 12;
+
+        labels.push(`${currentAge + y}歲`);
+        seriesPrincipal.push(Math.round(lpPrincipal + lbPrincipal));
+        seriesLpTotal.push(Math.round(lpBal));
+        seriesAllTotal.push(Math.round(lpBal + lbBal));
+      }
+
+      // 退休後月領折現 (依平均餘命，勞退保證利率基準約 1.5%/年)
+      const payoutMonths = (lifeExp - retireAge) * 12;
+      const lpPayoutRate = 0.015 / 12;
+      const lpMonthlyPayout = payoutMonths > 0
+        ? (lpBal * lpPayoutRate) / (1 - Math.pow(1 + lpPayoutRate, -payoutMonths))
+        : 0;
+
+      const lbPayoutRate = Math.max(0.005, lbAnnualReturn) / 12;
+      const lbMonthlyPayout = (payoutMonths > 0 && lbBal > 0)
+        ? (lbBal * lbPayoutRate) / (1 - Math.pow(1 + lbPayoutRate, -payoutMonths))
+        : 0;
+
+      const monthlyTotal = liMonthly + lpMonthlyPayout + lbMonthlyPayout;
+      const replacementRate = salary > 0 ? (monthlyTotal / salary) * 100 : 0;
+      const annualTaxSaved = lpVolMonthly * 12 * ((Number(st.taxRate) || 12) / 100);
+
+      return {
+        salary,
+        currentAge,
+        retireAge,
+        workYears,
+        lifeExp,
+        liTier,
+        lpTier,
+        totalLiYears,
+        liAgeFactor,
+        liEligibleMonthly,
+        liMonthly,
+        liLumpSum,
+        lpMonthlyContrib,
+        lpVolMonthly,
+        lpPrincipal,
+        lpTotal: lpBal,
+        lpMonthlyPayout,
+        lbMonthlyContrib,
+        lbPrincipal,
+        lbTotal: lbBal,
+        lbMonthlyPayout,
+        lumpTotal: lpBal + lbBal,
+        monthlyTotal,
+        replacementRate,
+        annualTaxSaved,
+        labels,
+        seriesPrincipal,
+        seriesLpTotal,
+        seriesAllTotal
+      };
+    }
+
+    function updateDomFromState() {
+      const ids = [
+        ['input-salary', appState.salary],
+        ['slider-salary', Math.min(200000, Math.max(28590, appState.salary))],
+        ['input-current-age', appState.currentAge],
+        ['input-retire-age', appState.retireAge],
+        ['input-li-years', appState.liPastYears],
+        ['input-life-exp', appState.lifeExpectancy],
+        ['input-lp-balance', appState.lpBalance],
+        ['input-lp-return', appState.lpReturn],
+        ['slider-lp-return', appState.lpReturn],
+        ['input-emp-rate', appState.employerRate],
+        ['select-tax-rate', appState.taxRate],
+        ['input-lb-monthly', appState.lbMonthly],
+        ['slider-lb-monthly', Math.min(50000, Math.max(0, appState.lbMonthly))],
+        ['input-lb-return', appState.lbReturn],
+        ['slider-lb-return', appState.lbReturn]
+      ];
+      for (let i = 0; i < ids.length; i++) {
+        const el = document.getElementById(ids[i][0]);
+        if (el) el.value = ids[i][1];
+      }
+      updateVoluntaryButtons();
+      updatePresetButtons();
+    }
+
+    function updateVoluntaryButtons() {
+      const rates = [0, 2, 4, 6];
+      for (let i = 0; i < rates.length; i++) {
+        const btn = document.getElementById(`vol-btn-${rates[i]}`);
+        if (btn) {
+          btn.classList.toggle('is-active', Number(appState.voluntaryRate) === rates[i]);
+        }
+      }
+    }
+
+    function updatePresetButtons() {
+      const keys = ['starter', 'mid', 'senior', 'sprint'];
+      for (let i = 0; i < keys.length; i++) {
+        const btn = document.getElementById(`preset-${keys[i]}`);
+        if (btn) {
+          btn.classList.toggle('is-active', appState.activePreset === keys[i]);
+        }
+      }
+    }
+
+    function renderAll() {
+      const msgEl = document.getElementById('validation-msg');
+      if (msgEl) {
+        if (Number(appState.retireAge) <= Number(appState.currentAge)) {
+          msgEl.textContent = '提醒：預計退休年齡必須大於目前年齡，已自動以至少 1 年推估。';
+        } else if (Number(appState.lifeExpectancy) <= Number(appState.retireAge)) {
+          msgEl.textContent = '提醒：預估平均餘命須大於退休年齡，已自動調整至少 5 年提領期。';
+        } else {
+          msgEl.textContent = '';
+        }
+      }
+
+      const res = calcPensionModel(appState);
+      lastComputed = res;
+
+      // 級距標籤與自提金額提示
+      const liTierEl = document.getElementById('badge-li-tier');
+      const lpTierEl = document.getElementById('badge-lp-tier');
+      const volHintEl = document.getElementById('voluntary-amt-hint');
+      if (liTierEl) liTierEl.textContent = fmtNT(res.liTier);
+      if (lpTierEl) lpTierEl.textContent = fmtNT(res.lpTier);
+      if (volHintEl) volHintEl.textContent = `${fmtNT(res.lpVolMonthly)} / 月`;
+
+      // KPI 卡片
+      const kpiMonthlyEl = document.getElementById('kpi-monthly-total');
+      const kpiBreakEl = document.getElementById('kpi-monthly-breakdown');
+      const kpiLumpEl = document.getElementById('kpi-lump-total');
+      const kpiLumpSubEl = document.getElementById('kpi-lump-sub');
+      const kpiRepEl = document.getElementById('kpi-replacement');
+      const kpiRepBadge = document.getElementById('kpi-replacement-badge');
+      const kpiTaxEl = document.getElementById('kpi-tax-saved');
+
+      if (kpiMonthlyEl) kpiMonthlyEl.textContent = fmtNT(res.monthlyTotal);
+      if (kpiBreakEl) {
+        kpiBreakEl.textContent = res.liEligibleMonthly
+          ? `勞保 ${Math.round(res.liMonthly).toLocaleString('zh-TW')} + 勞退 ${Math.round(res.lpMonthlyPayout).toLocaleString('zh-TW')} + 鎖頭銀行 ${Math.round(res.lbMonthlyPayout).toLocaleString('zh-TW')}`
+          : `勞保未滿15年採一次領 + 勞退 ${Math.round(res.lpMonthlyPayout).toLocaleString('zh-TW')} + 鎖頭銀行 ${Math.round(res.lbMonthlyPayout).toLocaleString('zh-TW')}`;
+      }
+      if (kpiLumpEl) kpiLumpEl.textContent = fmtNT(res.lumpTotal);
+      if (kpiLumpSubEl) kpiLumpSubEl.textContent = `距退休尚有 ${res.workYears} 年（含複利累積）`;
+      if (kpiRepEl) kpiRepEl.textContent = `${res.replacementRate.toFixed(1)}%`;
+
+      if (kpiRepBadge) {
+        kpiRepBadge.classList.remove('is-warn', 'is-gap');
+        if (res.replacementRate >= 70) {
+          kpiRepBadge.textContent = '已達理想 70% 替代率';
+        } else if (res.replacementRate >= 50) {
+          kpiRepBadge.textContent = '接近目標（建議再加碼）';
+          kpiRepBadge.classList.add('is-warn');
+        } else {
+          kpiRepBadge.textContent = '尚有替代率缺口';
+          kpiRepBadge.classList.add('is-gap');
+        }
+      }
+      if (kpiTaxEl) kpiTaxEl.textContent = `自提每年省稅 ${fmtNT(res.annualTaxSaved)}`;
+
+      // 替代率條形圖
+      const lblCurSal = document.getElementById('lbl-current-salary');
+      const lblGap = document.getElementById('lbl-gap-note');
+      if (lblCurSal) lblCurSal.textContent = fmtNT(res.salary);
+
+      const liPct = res.salary > 0 ? (res.liMonthly / res.salary) * 100 : 0;
+      const lpPct = res.salary > 0 ? (res.lpMonthlyPayout / res.salary) * 100 : 0;
+      const lbPct = res.salary > 0 ? (res.lbMonthlyPayout / res.salary) * 100 : 0;
+
+      // 進度條以 100% 為滿寬（若超過100%依比例縮放）
+      const scaleMax = Math.max(100, liPct + lpPct + lbPct);
+      const barLi = document.getElementById('bar-li');
+      const barLp = document.getElementById('bar-lp');
+      const barLb = document.getElementById('bar-lb');
+      if (barLi) barLi.style.width = `${(liPct / scaleMax) * 100}%`;
+      if (barLp) barLp.style.width = `${(lpPct / scaleMax) * 100}%`;
+      if (barLb) barLb.style.width = `${(lbPct / scaleMax) * 100}%`;
+
+      const legLi = document.getElementById('leg-li');
+      const legLp = document.getElementById('leg-lp');
+      const legLb = document.getElementById('leg-lb');
+      if (legLi) legLi.textContent = `${liPct.toFixed(1)}%`;
+      if (legLp) legLp.textContent = `${lpPct.toFixed(1)}%`;
+      if (legLb) legLb.textContent = `${lbPct.toFixed(1)}%`;
+
+      if (lblGap) {
+        const targetMonthly = res.salary * 0.7;
+        const diff = res.monthlyTotal - targetMonthly;
+        lblGap.textContent = diff >= 0
+          ? `高於 70% 基準線 ${fmtNT(diff)} / 月`
+          : `距離 70% 基準線尚差 ${fmtNT(Math.abs(diff))} / 月`;
+      }
+
+      // 明細卡片
+      setText('det-li-salary', fmtNT(res.liTier));
+      setText('det-li-years', `${res.totalLiYears.toFixed(1)} 年`);
+      setText('det-li-factor', `${Math.round(res.liAgeFactor * 100)}%`);
+      setText('det-li-monthly', res.liEligibleMonthly ? `${fmtNT(res.liMonthly)} / 月` : `一次領 ${fmtNT(res.liLumpSum)}`);
+
+      setText('det-lp-contrib', `${fmtNT(res.lpMonthlyContrib)} / 月`);
+      setText('det-lp-principal', fmtNT(res.lpPrincipal));
+      setText('det-lp-total', fmtNT(res.lpTotal));
+      setText('det-lp-monthly', `${fmtNT(res.lpMonthlyPayout)} / 月`);
+
+      setText('det-lb-contrib', `${fmtNT(res.lbMonthlyContrib)} / 月`);
+      setText('det-lb-principal', fmtNT(res.lbPrincipal));
+      setText('det-lb-total', fmtNT(res.lbTotal));
+      setText('det-lb-monthly', `${fmtNT(res.lbMonthlyPayout)} / 月`);
+
+      renderClaimTable(res);
+      renderCharts(res);
+    }
+
+    function setText(id, text) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    }
+
+    function renderClaimTable(res) {
+      const tbody = document.getElementById('tbody-claim-ages');
+      if (!tbody) return;
+      const ages = [60, 63, 65, 67, 70];
+      let html = '';
+      for (let i = 0; i < ages.length; i++) {
+        const age = ages[i];
+        const stClone = Object.assign({}, appState, { retireAge: age });
+        const sim = calcPensionModel(stClone);
+        const diffPct = Math.round((sim.liAgeFactor - 1) * 100);
+        const diffStr = diffPct === 0 ? '全額 100%' : (diffPct > 0 ? `+${diffPct}%` : `${diffPct}%`);
+        const isCurrent = Number(appState.retireAge) === age;
+        html += `<tr class="${isCurrent ? 'is-highlighted' : ''}">
+          <td>${age} 歲${isCurrent ? '（目前）' : ''}</td>
+          <td>${diffStr}</td>
+          <td class="num">${sim.liEligibleMonthly ? fmtNT(sim.liMonthly) : '一次領'}</td>
+          <td class="num">${fmtNT(sim.monthlyTotal)}</td>
+        </tr>`;
+      }
+      tbody.innerHTML = html;
+    }
+
+    function renderCharts(res) {
+      if (typeof Chart === 'undefined') return;
+      const cJade = getCssVar('--data-1');
+      const cCrimson = getCssVar('--data-2');
+      const cIndigo = getCssVar('--data-3');
+      const cContext = getCssVar('--data-context');
+      const cInk = getCssVar('--on-surface');
+      const cMuted = getCssVar('--on-surface-variant');
+      const cGrid = getCssVar('--outline-variant');
+      const cFont = getCssVar('--font-mono');
+
+      // 1. 資產累積曲線圖
+      const growthCtx = document.getElementById('chart-growth');
+      if (growthCtx) {
+        if (growthChart) growthChart.destroy();
+        growthChart = new Chart(growthCtx, {
+          type: 'line',
+          data: {
+            labels: res.labels,
+            datasets: [
+              {
+                label: '總退休專戶資產（含鎖頭銀行）',
+                data: res.seriesAllTotal,
+                borderColor: cCrimson,
+                backgroundColor: cCrimson,
+                borderWidth: 2.5,
+                pointRadius: 0,
+                pointHoverRadius: 5,
+                tension: 0.25
+              },
+              {
+                label: '勞退新制個人專戶',
+                data: res.seriesLpTotal,
+                borderColor: cJade,
+                backgroundColor: cJade,
+                borderWidth: 2,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                tension: 0.25
+              },
+              {
+                label: '累計投入本金',
+                data: res.seriesPrincipal,
+                borderColor: cContext,
+                backgroundColor: cContext,
+                borderWidth: 1.8,
+                borderDash: [5, 4],
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                tension: 0.1
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: {
+                position: 'top',
+                align: 'start',
+                labels: { color: cInk, boxWidth: 12, font: { size: 12 } }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(ctx) {
+                    return `${ctx.dataset.label}：NT$ ${Math.round(ctx.parsed.y).toLocaleString('zh-TW')}`;
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: cMuted, maxTicksLimit: 8, font: { family: cFont, size: 11 } }
+              },
+              y: {
+                grid: { color: cGrid },
+                ticks: {
+                  color: cMuted,
+                  font: { family: cFont, size: 11 },
+                  callback: function(val) {
+                    if (val >= 10000) return `${Math.round(val / 10000).toLocaleString('zh-TW')}萬`;
+                    return val;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // 2. 自提 0% vs 目前 vs 6% 比較圖
+      const compCtx = document.getElementById('chart-compare');
+      if (compCtx) {
+        const s0 = calcPensionModel(Object.assign({}, appState, { voluntaryRate: 0 }));
+        const s3 = calcPensionModel(Object.assign({}, appState, { voluntaryRate: 3 }));
+        const s6 = calcPensionModel(Object.assign({}, appState, { voluntaryRate: 6 }));
+
+        if (compareChart) compareChart.destroy();
+        compareChart = new Chart(compCtx, {
+          type: 'bar',
+          data: {
+            labels: ['自提 0%', '自提 3%', '自提 6%'],
+            datasets: [
+              {
+                label: '勞保老年年金',
+                data: [Math.round(s0.liMonthly), Math.round(s3.liMonthly), Math.round(s6.liMonthly)],
+                backgroundColor: cIndigo
+              },
+              {
+                label: '勞退新制月領',
+                data: [Math.round(s0.lpMonthlyPayout), Math.round(s3.lpMonthlyPayout), Math.round(s6.lpMonthlyPayout)],
+                backgroundColor: cJade
+              },
+              {
+                label: '鎖頭銀行專戶月領',
+                data: [Math.round(s0.lbMonthlyPayout), Math.round(s3.lbMonthlyPayout), Math.round(s6.lbMonthlyPayout)],
+                backgroundColor: cCrimson
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'top',
+                align: 'start',
+                labels: { color: cInk, boxWidth: 11, font: { size: 11 } }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(ctx) {
+                    return `${ctx.dataset.label}：NT$ ${Math.round(ctx.parsed.y).toLocaleString('zh-TW')} / 月`;
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                stacked: true,
+                grid: { display: false },
+                ticks: { color: cInk, font: { size: 12, weight: '600' } }
+              },
+              y: {
+                stacked: true,
+                grid: { color: cGrid },
+                ticks: {
+                  color: cMuted,
+                  font: { family: cFont, size: 11 },
+                  callback: function(val) {
+                    return `${(val / 1000).toFixed(0)}k`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    async function persistState() {
+      try {
+        if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === 'function') {
+          await window.notebookAppApi.setAppState(appState);
+        }
+      } catch (e) {
+        // Ignore persistence errors in non-host environments
+      }
+    }
+
+    // 雙向同步獨立處理函式 (避免拉桿回彈)
+    function onSalarySlider(val) {
+      const v = Number(val) || 28590;
+      appState.salary = v;
+      appState.activePreset = '';
+      appState.taxRate = estimateTaxRate(v);
+      const numEl = document.getElementById('input-salary');
+      const taxEl = document.getElementById('select-tax-rate');
+      if (numEl) numEl.value = v;
+      if (taxEl) taxEl.value = appState.taxRate;
+      updatePresetButtons();
+      renderAll();
+      persistState();
+    }
+
+    function onSalaryInput(val) {
+      const v = Math.max(0, Number(val) || 0);
+      appState.salary = v;
+      appState.activePreset = '';
+      appState.taxRate = estimateTaxRate(v);
+      const sldEl = document.getElementById('slider-salary');
+      const taxEl = document.getElementById('select-tax-rate');
+      if (sldEl) sldEl.value = Math.min(200000, Math.max(28590, v));
+      if (taxEl) taxEl.value = appState.taxRate;
+      updatePresetButtons();
+      renderAll();
+      persistState();
+    }
+
+    function onReturnSlider(val) {
+      const v = Number(val) || 0;
+      appState.lpReturn = v;
+      const numEl = document.getElementById('input-lp-return');
+      if (numEl) numEl.value = v;
+      renderAll();
+      persistState();
+    }
+
+    function onReturnInput(val) {
+      const v = Math.max(0, Math.min(15, Number(val) || 0));
+      appState.lpReturn = v;
+      const sldEl = document.getElementById('slider-lp-return');
+      if (sldEl) sldEl.value = Math.min(8, Math.max(1.5, v));
+      renderAll();
+      persistState();
+    }
+
+    function onLbMonthlySlider(val) {
+      const v = Number(val) || 0;
+      appState.lbMonthly = v;
+      const numEl = document.getElementById('input-lb-monthly');
+      if (numEl) numEl.value = v;
+      renderAll();
+      persistState();
+    }
+
+    function onLbMonthlyInput(val) {
+      const v = Math.max(0, Number(val) || 0);
+      appState.lbMonthly = v;
+      const sldEl = document.getElementById('slider-lb-monthly');
+      if (sldEl) sldEl.value = Math.min(50000, Math.max(0, v));
+      renderAll();
+      persistState();
+    }
+
+    function onLbReturnSlider(val) {
+      const v = Number(val) || 0;
+      appState.lbReturn = v;
+      const numEl = document.getElementById('input-lb-return');
+      if (numEl) numEl.value = v;
+      renderAll();
+      persistState();
+    }
+
+    function onLbReturnInput(val) {
+      const v = Math.max(0, Math.min(15, Number(val) || 0));
+      appState.lbReturn = v;
+      const sldEl = document.getElementById('slider-lb-return');
+      if (sldEl) sldEl.value = Math.min(8, Math.max(1, v));
+      renderAll();
+      persistState();
+    }
+
+    function onAgeChange() {
+      const curEl = document.getElementById('input-current-age');
+      const retEl = document.getElementById('input-retire-age');
+      if (curEl) appState.currentAge = Number(curEl.value) || 35;
+      if (retEl) appState.retireAge = Number(retEl.value) || 65;
+      appState.activePreset = '';
+      updatePresetButtons();
+      renderAll();
+      persistState();
+    }
+
+    function onParamInput() {
+      const mapIds = [
+        ['input-li-years', 'liPastYears'],
+        ['input-life-exp', 'lifeExpectancy'],
+        ['input-lp-balance', 'lpBalance'],
+        ['input-emp-rate', 'employerRate'],
+        ['select-tax-rate', 'taxRate']
+      ];
+      for (let i = 0; i < mapIds.length; i++) {
+        const el = document.getElementById(mapIds[i][0]);
+        if (el) appState[mapIds[i][1]] = Number(el.value) || 0;
+      }
+      appState.activePreset = '';
+      updatePresetButtons();
+      renderAll();
+      persistState();
+    }
+
+    function setVoluntaryRate(rate) {
+      appState.voluntaryRate = rate;
+      appState.activePreset = '';
+      updateVoluntaryButtons();
+      updatePresetButtons();
+      renderAll();
+      persistState();
+    }
+
+    function applyPreset(key) {
+      const preset = PRESETS[key];
+      if (!preset) return;
+      appState = Object.assign({}, preset);
+      updateDomFromState();
+      renderAll();
+      persistState();
+      showToast(`已帶入情境參數`);
+    }
+
+    function handleReset(btn) {
+      if (!btn) return;
+      if (btn.dataset.armed !== 'true') {
+        btn.dataset.armed = 'true';
+        btn.classList.add('btn-danger-armed');
+        btn.textContent = '再點一次確認重設';
+        setTimeout(function() {
+          if (btn.dataset.armed === 'true') {
+            btn.dataset.armed = 'false';
+            btn.classList.remove('btn-danger-armed');
+            btn.textContent = '重設預設值';
+          }
+        }, 3500);
+        return;
+      }
+      btn.dataset.armed = 'false';
+      btn.classList.remove('btn-danger-armed');
+      btn.textContent = '重設預設值';
+      appState = Object.assign({}, DEFAULT_STATE);
+      updateDomFromState();
+      renderAll();
+      persistState();
+      showToast('已恢復預設參數');
+    }
+
+    function exportCsv() {
+      if (!lastComputed) return;
+      const r = lastComputed;
+      const rows = [
+        ['項目', '數值', '備註'],
+        ['每月薪資總額', r.salary, '新台幣元'],
+        ['勞保投保薪資級距', r.liTier, '上限 45800'],
+        ['勞退月提繳級距', r.lpTier, '上限 150000'],
+        ['目前年齡 / 退休年齡', `${r.currentAge} / ${r.retireAge}`, `工作年數 ${r.workYears} 年`],
+        ['勞保預估月領', Math.round(r.liMonthly), r.liEligibleMonthly ? `年資 ${r.totalLiYears} 年` : '未滿15年一次領'],
+        ['勞退新制期末專戶', Math.round(r.lpTotal), `自提 ${appState.voluntaryRate}%`],
+        ['勞退新制預估月領', Math.round(r.lpMonthlyPayout), `平均餘命 ${r.lifeExp} 歲`],
+        ['鎖頭銀行專戶期末總額', Math.round(r.lbTotal), `月存 ${r.lbMonthlyContrib}`],
+        ['鎖頭銀行專戶預估月領', Math.round(r.lbMonthlyPayout), `年化報酬 ${appState.lbReturn}%`],
+        ['退休後預估每月總領', Math.round(r.monthlyTotal), `所得替代率 ${r.replacementRate.toFixed(1)}%`],
+        ['每年預估節稅金額', Math.round(r.annualTaxSaved), `適用稅率 ${appState.taxRate}%`]
+      ];
+      const csv = '\uFEFF' + rows.map(function(row) {
+        return row.map(function(cell) {
+          return `"${String(cell).replace(/"/g, '""')}"`;
+        }).join(',');
+      }).join('\n');
+
+      if (window.notebookAppApi && typeof window.notebookAppApi.triggerFileDownload === 'function') {
+        window.notebookAppApi.triggerFileDownload({
+          content: csv,
+          contentType: 'text/csv',
+          encoding: 'UTF-8',
+          filename: 'lockbank-pension-plan.csv'
+        });
+        showToast('已匯出 CSV 試算表');
+      } else {
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'lockbank-pension-plan.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('已下載 CSV 試算表');
+      }
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById('status-toast');
+      if (!el) return;
+      el.textContent = msg;
+      setTimeout(function() {
+        if (el.textContent === msg) el.textContent = '';
+      }, 2800);
+    }
+
+    async function initApp() {
+      try {
+        if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === 'function') {
+          const saved = await window.notebookAppApi.getAppState();
+          if (saved && typeof saved === 'object') {
+            appState = Object.assign({}, DEFAULT_STATE, saved);
+          }
+        }
+      } catch (e) {
+        // Fallback to default state
+      }
+
+      updateDomFromState();
+      renderAll();
+
+      try {
+        if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === 'function') {
+          window.notebookAppApi.notifyAppReady();
+        }
+      } catch (e) {
+        // Ignore in standalone mode
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
+  </script>
+</body>
+</html>

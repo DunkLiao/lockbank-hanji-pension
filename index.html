@@ -1,0 +1,2920 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="tool">
+  <meta name="design-style" content="kiln">
+  <title>鎖頭銀行退休金試算中心 — 退撫與保險給付統合入口</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+
+      /* 1. Kiln base tokens adapted with Sejong Royal Court & Hanji Palette */
+      --background: #F5F0E4;               /* 典雅宣紙 (Hanji warm ivory) */
+      --surface-container-low: #EFE8D8;    /* 淺宣紙葉 (Washi/Hanji card surface) */
+      --surface-container: #E6DEC8;        /* 淡茶宣紙 (Secondary panels, recessed tracks) */
+      --surface-container-high: #DDD3B8;   /* 濃宣紙紋 (Table headers, hover fills) */
+
+      /* Ink (濃淡墨色) */
+      --on-surface: #1B1C1E;               /* 濃墨 (Sumi deep black ink) */
+      --on-surface-variant: #4B4942;       /* 淡墨 (Weathered ink captions/secondary) */
+
+      /* Rules & Borders */
+      --outline: #1B1C1E;                  /* 墨線 (Primary structural rule) */
+      --outline-variant: #CFC5AE;          /* 紙紋細線 (Subtle Hanji hairlines) */
+      --outline-gold: #B08D44;             /* 御璽金線 (Royal seal gold rules/ornaments) */
+
+      /* Accents (韓國世宗大王宮廷配色) */
+      --primary: #1A2B49;                  /* 深邃黛藍 (Royal court indigo) */
+      --on-primary: #F5F0E4;               /* 宣紙白字於黛藍上 */
+      --primary-container: #E3E7EE;        /* 淺黛藍洗色 (Selected state) */
+      --on-primary-container: #1A2B49;
+
+      --secondary: #2B5948;                /* 松青玉色 (Pine jade: positive notes, secondary series) */
+      --tertiary: #A62C22;                 /* 宮廷朱紅 (Palace vermilion: hanko seal, focal callout) */
+      --on-tertiary: #F5F0E4;
+
+      --gold-ink: #78591C;                 /* 御璽暗金 (Accessible gold text on Hanji, >= 5:1) */
+      --gold-bright: #D4B26A;              /* 御璽亮金 (Gold accent on deep indigo, >= 7.5:1) */
+
+      --error: #9E241B;
+      --on-error: #F5F0E4;
+
+      /* Data series */
+      --data-1: #1A2B49;                   /* 深邃黛藍 */
+      --data-2: #A62C22;                   /* 宮廷朱紅 */
+      --data-3: #2B5948;                   /* 松青玉色 */
+      --data-4: #78591C;                   /* 御璽暗金 */
+      --data-context: #B8AE98;             /* 淡墨背景線 */
+
+      /* Fonts */
+      --font-headline: 'Noto Serif TC', serif;
+      --font-body: 'Noto Sans TC', sans-serif;
+      --font-label: 'Noto Sans TC', 'IBM Plex Mono', monospace;
+      --font-mono: 'IBM Plex Mono', 'Noto Sans TC', monospace;
+
+      /* Shape (2px trimmed paper corners) */
+      --rounded: 0.125rem;
+      --rounded-lg: 0.125rem;
+      --rounded-full: 0.125rem;
+
+      /* Effects */
+      --rule-sumi-left: 3px solid var(--primary);
+      --rule-vermilion-left: 3px solid var(--tertiary);
+      --rule-sumi: 1px solid var(--outline);
+      --rule-linen: 1px solid var(--outline-variant);
+      --rule-gold: 1px solid var(--outline-gold);
+      --rule-gold-double: 3px double var(--outline-gold);
+      --paper-vignette: inset 0 0 80px color-mix(in srgb, var(--gold-ink) 10%, transparent);
+      --label-tracking: 0.08em;
+
+      /* 3. Shared tokens */
+      --positive: #2B5948;
+      --warning: #8A5612;
+      --focus: #1A2B49;
+
+      /* Type scale (Focused Tool) */
+      --display-size: clamp(1.75rem, 1.35rem + 1.3vw, 2.35rem);
+      --headline-size: clamp(1.25rem, 1.08rem + 0.55vw, 1.55rem);
+      --subhead-size: clamp(1.0625rem, 0.98rem + 0.25vw, 1.2rem);
+      --body-size: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
+      --label-size: 0.75rem;
+
+      /* Spacing scale (4pt base) */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+      --space-3xl: 6rem;
+
+      /* Motion */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+    }
+
+    /* Base reset */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      overflow-x: clip;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    header { position: static !important; }
+
+    /* Tactile Hanji Xuan Paper Fiber Texture */
+    body {
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          color-mix(in srgb, var(--on-surface) 1.5%, transparent) 0px,
+          transparent 1px,
+          transparent 4px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          color-mix(in srgb, var(--gold-ink) 1.8%, transparent) 0px,
+          transparent 1px,
+          transparent 6px
+        );
+      box-shadow: var(--paper-vignette);
+      min-height: 100vh;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .page-grid {
+      display: grid;
+      gap: var(--space-xl);
+      padding: var(--space-lg) var(--space-lg) var(--space-2xl);
+      max-width: 1220px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .page-grid * { min-width: 0; }
+
+    /* =====================================================================
+       ROYAL CODEX HEADER (世宗大王宮廷典籍標頭)
+       ===================================================================== */
+    .codex-header {
+      background: var(--primary);
+      color: var(--on-primary);
+      border: 1px solid var(--outline-gold);
+      outline: 1px solid var(--outline-gold);
+      outline-offset: -6px;
+      border-radius: var(--rounded);
+      padding: var(--space-xl) var(--space-xl) var(--space-lg);
+      position: relative;
+    }
+
+    .codex-header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--space-lg);
+      flex-wrap: wrap;
+    }
+
+    .codex-title-block {
+      flex: 1 1 560px;
+    }
+
+    .codex-kicker {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      letter-spacing: var(--label-tracking);
+      color: var(--gold-bright);
+      font-weight: 600;
+      margin-bottom: var(--space-sm);
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .codex-kicker-line {
+      display: inline-block;
+      width: 24px;
+      height: 1px;
+      background: var(--gold-bright);
+    }
+
+    .codex-header h1 {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: var(--display-size);
+      line-height: 1.2;
+      margin: 0 0 var(--space-sm) 0;
+      color: var(--on-primary);
+      letter-spacing: 0.02em;
+    }
+
+    .codex-lede {
+      font-size: var(--body-size);
+      color: color-mix(in srgb, var(--on-primary) 86%, var(--primary));
+      max-width: 65ch;
+      margin: 0;
+    }
+
+    /* Royal Seal Stamp (宮廷朱紅御璽印章) */
+    .codex-seal-wrap {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      flex-shrink: 0;
+    }
+
+    .seal-stamp {
+      background: var(--tertiary);
+      color: var(--on-tertiary);
+      border: 2px solid var(--gold-bright);
+      outline: 1px solid var(--tertiary);
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: 0.875rem;
+      line-height: 1.35;
+      letter-spacing: 0.14em;
+      padding: 0.55rem 0.45rem;
+      writing-mode: vertical-rl;
+      border-radius: var(--rounded);
+      user-select: none;
+      text-align: center;
+    }
+
+    /* Integrated Asset Overview Strip inside Header */
+    .codex-summary-bar {
+      margin-top: var(--space-lg);
+      padding-top: var(--space-lg);
+      border-top: 1px solid color-mix(in srgb, var(--gold-bright) 42%, transparent);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
+      gap: var(--space-md);
+      align-items: end;
+    }
+
+    .summary-stat {
+      border-left: 2px solid var(--gold-bright);
+      padding-left: var(--space-md);
+    }
+
+    .summary-stat-label {
+      font-size: var(--label-size);
+      color: var(--gold-bright);
+      font-weight: 500;
+      margin-bottom: var(--space-xs);
+    }
+
+    .summary-stat-value {
+      font-family: var(--font-mono);
+      font-size: clamp(1.15rem, 1rem + 0.5vw, 1.45rem);
+      font-weight: 600;
+      color: var(--on-primary);
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+    }
+
+    .summary-stat-note {
+      font-size: 0.75rem;
+      color: color-mix(in srgb, var(--on-primary) 75%, var(--primary));
+      margin-top: 2px;
+    }
+
+    .codex-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      min-height: 44px;
+      padding: 0 var(--space-md);
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: var(--rounded);
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: background-color var(--dur-micro) var(--ease-out),
+                  color var(--dur-micro) var(--ease-out),
+                  box-shadow var(--dur-micro) var(--ease-out),
+                  transform var(--dur-micro) var(--ease-out);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--on-primary);
+      border-color: var(--primary);
+    }
+    .btn-primary:hover {
+      background: color-mix(in srgb, var(--primary) 86%, var(--on-surface));
+    }
+
+    .btn-vermilion {
+      background: var(--tertiary);
+      color: var(--on-tertiary);
+      border-color: var(--tertiary);
+    }
+    .btn-vermilion:hover {
+      background: color-mix(in srgb, var(--tertiary) 86%, var(--on-surface));
+    }
+
+    .btn-outline-gold {
+      background: transparent;
+      color: var(--gold-bright);
+      border-color: var(--gold-bright);
+    }
+    .btn-outline-gold:hover {
+      background: color-mix(in srgb, var(--gold-bright) 14%, transparent);
+    }
+
+    .btn-secondary {
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      border-color: var(--outline-variant);
+    }
+    .btn-secondary:hover {
+      background: var(--surface-container);
+      border-color: var(--outline-gold);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--on-surface-variant);
+      border-color: var(--outline-variant);
+    }
+    .btn-ghost:hover {
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+    }
+
+    /* =====================================================================
+       SECTION HEADINGS (古典典籍章節線)
+       ===================================================================== */
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+      border-bottom: var(--rule-gold-double);
+      padding-bottom: var(--space-sm);
+      margin-bottom: var(--space-lg);
+    }
+
+    .section-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .section-num {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 600;
+      color: var(--tertiary);
+      letter-spacing: var(--label-tracking);
+    }
+
+    .section-head h2 {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: var(--headline-size);
+      line-height: 1.25;
+      margin: 0;
+      color: var(--on-surface);
+    }
+
+    .section-sub {
+      font-size: 0.875rem;
+      color: var(--on-surface-variant);
+      margin: 0;
+    }
+
+    /* =====================================================================
+       PORTAL NAVIGATION CARDS (三大核心試算入口導覽卡)
+       ===================================================================== */
+    .portal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(310px, 100%), 1fr));
+      gap: var(--space-lg);
+    }
+
+    .portal-card {
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-top: 3px solid var(--primary);
+      border-radius: var(--rounded);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: var(--space-md);
+      transition: background-color var(--dur-short) var(--ease-out),
+                  box-shadow var(--dur-short) var(--ease-out),
+                  transform var(--dur-short) var(--ease-out);
+      position: relative;
+    }
+
+    .portal-card:hover {
+      background: color-mix(in srgb, var(--surface-container-low) 70%, var(--background));
+      box-shadow: 0 6px 20px color-mix(in srgb, var(--on-surface) 8%, transparent);
+    }
+
+    .portal-card.is-active {
+      background: var(--background);
+      border-color: var(--outline-gold);
+      border-top: 4px solid var(--tertiary);
+      box-shadow: 0 0 0 1px var(--outline-gold);
+    }
+
+    .portal-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--space-sm);
+    }
+
+    .portal-card-index {
+      font-family: var(--font-headline);
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--tertiary);
+      letter-spacing: 0.06em;
+    }
+
+    .portal-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border: 1px solid var(--outline-gold);
+      color: var(--gold-ink);
+      background: var(--surface-container);
+      border-radius: var(--rounded);
+    }
+
+    .portal-card.is-active .portal-tag {
+      background: var(--tertiary);
+      color: var(--on-tertiary);
+      border-color: var(--tertiary);
+    }
+
+    .portal-card h3 {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: 1.25rem;
+      line-height: 1.3;
+      margin: var(--space-xs) 0 0 0;
+      color: var(--on-surface);
+    }
+
+    .portal-formula-box {
+      background: var(--surface-container);
+      border-left: 2px solid var(--outline-gold);
+      padding: var(--space-sm) var(--space-md);
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      color: var(--primary);
+      font-weight: 500;
+      line-height: 1.45;
+    }
+
+    .portal-desc {
+      font-size: 0.875rem;
+      color: var(--on-surface-variant);
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    .portal-preview-row {
+      border-top: var(--rule-linen);
+      padding-top: var(--space-sm);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--space-sm);
+    }
+
+    .portal-preview-label {
+      font-size: 0.75rem;
+      color: var(--on-surface-variant);
+    }
+
+    .portal-preview-val {
+      font-family: var(--font-mono);
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .portal-card.is-active .portal-preview-val {
+      color: var(--tertiary);
+    }
+
+    /* =====================================================================
+       ONE-STOP WORKSPACE & CODEX BOOKMARK TABS (一站式切換工作臺)
+       ===================================================================== */
+    .workspace-shell {
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-gold);
+      border-radius: var(--rounded);
+      overflow: hidden;
+    }
+
+    .bookmark-bar {
+      display: flex;
+      flex-wrap: wrap;
+      background: var(--surface-container);
+      border-bottom: 2px solid var(--outline-gold);
+      padding: var(--space-sm) var(--space-md) 0;
+      gap: var(--space-xs);
+    }
+
+    .bookmark-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      min-height: 44px;
+      padding: var(--space-sm) var(--space-md);
+      background: transparent;
+      border: 1px solid transparent;
+      border-bottom: none;
+      border-radius: var(--rounded) var(--rounded) 0 0;
+      color: var(--on-surface-variant);
+      font-family: var(--font-headline);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-out),
+                  color var(--dur-micro) var(--ease-out);
+      position: relative;
+      top: 2px;
+    }
+
+    .bookmark-tab:hover {
+      background: color-mix(in srgb, var(--background) 60%, transparent);
+      color: var(--on-surface);
+    }
+
+    .bookmark-tab[aria-selected="true"] {
+      background: var(--background);
+      color: var(--primary);
+      border-color: var(--outline-gold);
+      border-bottom: 2px solid var(--background);
+    }
+
+    .bookmark-tab[aria-selected="true"] .tab-seal-dot {
+      background: var(--tertiary);
+    }
+
+    .tab-seal-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: var(--rounded);
+      background: var(--outline-variant);
+      flex-shrink: 0;
+    }
+
+    .workspace-body {
+      background: var(--background);
+      padding: var(--space-xl);
+    }
+
+    .module-panel {
+      display: none;
+      animation: fadePanel var(--dur-short) var(--ease-out);
+    }
+
+    .module-panel.is-active {
+      display: block;
+    }
+
+    @keyframes fadePanel {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Two-column Asymmetric Calculator Grid */
+    .calc-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: var(--space-xl);
+      align-items: start;
+    }
+
+    /* Left Column: Inputs Scroll (參數設定卷) */
+    .input-pane {
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-left: var(--rule-sumi-left);
+      border-radius: var(--rounded);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+    }
+
+    .pane-header {
+      border-bottom: var(--rule-linen);
+      padding-bottom: var(--space-sm);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+
+    .pane-header h4 {
+      font-family: var(--font-headline);
+      font-size: 1.0625rem;
+      font-weight: 600;
+      margin: 0;
+      color: var(--on-surface);
+    }
+
+    /* Preset Chips */
+    .preset-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+
+    .preset-btn {
+      min-height: 36px;
+      padding: 4px 10px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      background: var(--background);
+      color: var(--primary);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-out),
+                  border-color var(--dur-micro) var(--ease-out);
+    }
+
+    .preset-btn:hover {
+      background: var(--primary-container);
+      border-color: var(--primary);
+    }
+
+    .preset-btn.is-selected {
+      background: var(--primary);
+      color: var(--on-primary);
+      border-color: var(--primary);
+    }
+
+    /* Form Controls */
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .field-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--space-sm);
+    }
+
+    .field-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--on-surface);
+    }
+
+    .field-hint {
+      font-size: 0.75rem;
+      color: var(--on-surface-variant);
+    }
+
+    .dual-control {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 120px;
+      gap: var(--space-md);
+      align-items: center;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--primary);
+      cursor: pointer;
+      height: 6px;
+    }
+
+    .num-input, .select-input {
+      width: 100%;
+      min-height: 44px;
+      padding: var(--space-xs) var(--space-sm);
+      background: var(--background);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      color: var(--on-surface);
+      font-family: var(--font-mono);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      text-align: right;
+      transition: border-color var(--dur-micro) var(--ease-out),
+                  box-shadow var(--dur-micro) var(--ease-out);
+    }
+
+    .select-input {
+      font-family: var(--font-body);
+      text-align: left;
+      padding-right: var(--space-lg);
+      cursor: pointer;
+    }
+
+    .num-input:focus, .select-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 18%, transparent);
+    }
+
+    .num-input.is-invalid {
+      border-color: var(--error);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--error) 18%, transparent);
+    }
+
+    .field-error {
+      font-size: 0.75rem;
+      color: var(--error);
+      font-weight: 500;
+      display: none;
+    }
+    .field-error.is-visible {
+      display: block;
+    }
+
+    .readonly-badge {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 44px;
+      padding: 0 var(--space-md);
+      background: var(--surface-container);
+      border: 1px dashed var(--outline-gold);
+      border-radius: var(--rounded);
+      font-size: 0.875rem;
+    }
+
+    .readonly-badge strong {
+      font-family: var(--font-mono);
+      color: var(--primary);
+    }
+
+    /* Right Column: Results & Visuals (試算結果與圖解卷) */
+    .output-pane {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+    }
+
+    /* Primary Verdict Banner */
+    .verdict-card {
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-gold);
+      border-left: var(--rule-vermilion-left);
+      border-radius: var(--rounded);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .verdict-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+    }
+
+    .verdict-kicker {
+      font-size: var(--label-size);
+      font-weight: 600;
+      color: var(--tertiary);
+      letter-spacing: var(--label-tracking);
+    }
+
+    .verdict-amount {
+      font-family: var(--font-mono);
+      font-size: clamp(1.85rem, 1.4rem + 1.4vw, 2.5rem);
+      font-weight: 600;
+      color: var(--primary);
+      font-variant-numeric: tabular-nums;
+      line-height: 1.15;
+      margin-top: var(--space-xs);
+    }
+
+    .verdict-submetrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(155px, 100%), 1fr));
+      gap: var(--space-md);
+      border-top: var(--rule-linen);
+      padding-top: var(--space-md);
+    }
+
+    .submetric {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .submetric-label {
+      font-size: 0.75rem;
+      color: var(--on-surface-variant);
+    }
+
+    .submetric-val {
+      font-family: var(--font-mono);
+      font-size: 1.0625rem;
+      font-weight: 600;
+      color: var(--on-surface);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .submetric-val.is-positive {
+      color: var(--secondary);
+    }
+
+    .submetric-val.is-vermilion {
+      color: var(--tertiary);
+    }
+
+    /* Formula Breakdown Box ("Show Your Work") */
+    .breakdown-card {
+      background: var(--background);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: var(--space-lg);
+    }
+
+    .breakdown-title {
+      font-family: var(--font-headline);
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0 0 var(--space-md) 0;
+      color: var(--on-surface);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-sm);
+      border-bottom: var(--rule-linen);
+      padding-bottom: var(--space-xs);
+    }
+
+    .formula-steps {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .formula-step {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--space-md);
+      padding: var(--space-xs) 0;
+      border-bottom: 1px dotted var(--outline-variant);
+      font-size: 0.875rem;
+    }
+
+    .formula-step:last-child {
+      border-bottom: none;
+    }
+
+    .formula-step-name {
+      color: var(--on-surface);
+      font-weight: 500;
+    }
+
+    .formula-step-math {
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      color: var(--on-surface-variant);
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .formula-step-math strong {
+      color: var(--primary);
+      font-size: 0.9375rem;
+    }
+
+    /* Chart Container */
+    .chart-card {
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: var(--space-lg);
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-md);
+    }
+
+    .chart-title {
+      font-family: var(--font-headline);
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0;
+      color: var(--on-surface);
+    }
+
+    .chart-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      font-size: 0.75rem;
+      color: var(--on-surface-variant);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: var(--rounded);
+      display: inline-block;
+    }
+
+    .svg-chart-wrap {
+      width: 100%;
+      min-height: 240px;
+      position: relative;
+    }
+
+    .svg-chart-wrap svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .chart-readout {
+      margin-top: var(--space-sm);
+      padding: var(--space-xs) var(--space-sm);
+      background: var(--background);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      font-size: 0.8125rem;
+      color: var(--on-surface-variant);
+      font-family: var(--font-mono);
+      min-height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+
+    /* Preferential Deposit Sub-panel (優存試算專區) */
+    .pref-panel {
+      background: var(--surface-container);
+      border: 1px solid var(--outline-gold);
+      border-radius: var(--rounded);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .pref-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+      gap: var(--space-md);
+      align-items: end;
+    }
+
+    .pref-result-strip {
+      background: var(--background);
+      border-left: 3px solid var(--gold-ink);
+      padding: var(--space-sm) var(--space-md);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+    }
+
+    /* Classical Ledger Table (三軌彙總表) */
+    .ledger-table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+    }
+
+    .ledger-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      background: var(--background);
+    }
+
+    .ledger-table thead th {
+      background: var(--surface-container-high);
+      color: var(--on-surface);
+      font-family: var(--font-headline);
+      font-weight: 600;
+      text-align: left;
+      padding: var(--space-sm) var(--space-md);
+      border-top: 1px solid var(--outline);
+      border-bottom: 1px solid var(--outline);
+      white-space: nowrap;
+    }
+
+    .ledger-table thead th.num,
+    .ledger-table tbody td.num {
+      text-align: right;
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ledger-table tbody td {
+      padding: var(--space-sm) var(--space-md);
+      border-bottom: var(--rule-linen);
+      vertical-align: top;
+    }
+
+    .ledger-table tbody tr:hover {
+      background: var(--surface-container-low);
+    }
+
+    .ledger-table tfoot td {
+      padding: var(--space-md);
+      background: var(--surface-container);
+      border-top: 2px solid var(--outline-gold);
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    /* =====================================================================
+       REGULATORY NOTES & GLOSSARY (規章說明典籍註釋)
+       ===================================================================== */
+    .notes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+      gap: var(--space-lg);
+    }
+
+    .note-card {
+      background: var(--surface-container-low);
+      border-left: 2px solid var(--outline-gold);
+      padding: var(--space-md) var(--space-lg);
+      border-radius: var(--rounded);
+    }
+
+    .note-card h3 {
+      font-family: var(--font-headline);
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0 0 var(--space-xs) 0;
+      color: var(--primary);
+    }
+
+    .note-card p {
+      font-size: 0.875rem;
+      color: var(--on-surface-variant);
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    /* Footer */
+    .codex-footer {
+      border-top: var(--rule-gold-double);
+      padding-top: var(--space-lg);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      font-size: 0.8125rem;
+      color: var(--on-surface-variant);
+    }
+
+    .status-toast {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      padding: 4px 10px;
+      border-radius: var(--rounded);
+      font-size: 0.8125rem;
+      background: var(--surface-container);
+      color: var(--secondary);
+      border: 1px solid var(--outline-gold);
+      opacity: 0;
+      transition: opacity var(--dur-short) var(--ease-out);
+    }
+    .status-toast.is-visible {
+      opacity: 1;
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 900px) {
+      .calc-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page-grid {
+        padding: var(--space-sm);
+        gap: var(--space-lg);
+      }
+      .codex-header {
+        padding: var(--space-lg) var(--space-md);
+      }
+      .workspace-body {
+        padding: var(--space-md);
+      }
+      .dual-control {
+        grid-template-columns: 1fr;
+        gap: var(--space-sm);
+      }
+      .seal-stamp {
+        writing-mode: horizontal-tb;
+        padding: 4px 10px;
+        letter-spacing: 0.08em;
+      }
+      .codex-actions {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+  <style>
+    .site-nav { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; max-width: 1180px; margin: 1rem auto 0; padding: 0 1.25rem; }
+    .site-nav a { color: var(--primary); border: 1px solid var(--outline-variant); background: var(--surface-container-low); padding: 0.45rem 0.75rem; text-decoration: none; font: 600 0.82rem/1.2 var(--font-label); }
+    .site-nav a:hover, .site-nav a:focus-visible { color: var(--on-primary); background: var(--primary); }
+    .site-nav a[aria-current="page"] { color: var(--on-tertiary); background: var(--tertiary); border-color: var(--tertiary); }
+  </style>
+</head>
+<body>
+  <nav class="site-nav" aria-label="網站導覽">
+    <a href="index.html" aria-current="page">首頁</a>
+    <a href="鎖頭銀行退休金試算器_正式版.html">綜合退休金</a>
+    <a href="鎖頭銀行退休金試算器_多情境版.html">多情境試算</a>
+    <a href="鎖頭銀行退休金試算器_公保.html">公保退休金</a>
+    <a href="鎖頭銀行退休金試算器_勞退新制.html">勞退新制</a>
+  </nav>
+
+  <main class="page-grid">
+    <!-- =================================================================
+         HERO HEADER (宮廷典籍標頭與總覽試算摘要)
+         ================================================================= -->
+    <header class="codex-header">
+      <div class="codex-header-top">
+        <div class="codex-title-block">
+          <div class="codex-kicker">
+            <span class="codex-kicker-line" aria-hidden="true"></span>
+            <span>鎖頭銀行退撫與保險給付統合總署</span>
+          </div>
+          <h1>鎖頭銀行退休金試算中心</h1>
+          <p class="codex-lede">
+            匯總「鎖頭銀行綜合退休金」、「勞退新制複利專戶」與「公保養老給付」三大試算模組。支援參數即時連動、未休假加班費折算及行員優惠存款（優存）推估，協助行員一站掌握退休金完整藍圖。
+          </p>
+        </div>
+
+        <div class="codex-seal-wrap">
+          <div class="seal-stamp" aria-label="鎖頭銀印 退撫試算">鎖頭銀印<br>退撫試算</div>
+        </div>
+      </div>
+
+      <div class="codex-summary-bar" aria-label="三大模組統合即時概覽">
+        <div class="summary-stat">
+          <div class="summary-stat-label">綜合退休金合計（模組壹）</div>
+          <div class="summary-stat-value" id="hdr-comp-total">NT$ 0</div>
+          <div class="summary-stat-note" id="hdr-comp-note">平均薪資×45基數 ＋ 公保保俸×36個月</div>
+        </div>
+        <div class="summary-stat">
+          <div class="summary-stat-label">勞退新制累積預估（模組貳）</div>
+          <div class="summary-stat-value" id="hdr-labor-total">NT$ 0</div>
+          <div class="summary-stat-note" id="hdr-labor-note">雇主6% ＋ 個人自提複利總額</div>
+        </div>
+        <div class="summary-stat">
+          <div class="summary-stat-label">雙軌退休總資產（壹＋貳）</div>
+          <div class="summary-stat-value" id="hdr-grand-total">NT$ 0</div>
+          <div class="summary-stat-note">模組參公保給付已併入模組壹，不重複計列</div>
+        </div>
+        <div class="codex-actions">
+          <button type="button" class="btn btn-outline-gold" onclick="exportSummaryCsv()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            匯出試算表 (CSV)
+          </button>
+          <button type="button" class="btn btn-vermilion" id="btn-reset-all" onclick="handleResetAll(this)">
+            重設預設參數
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- =================================================================
+         SECTION 1: PORTAL NAVIGATION CARDS (三大核心工具入口卡片)
+         ================================================================= -->
+    <section aria-labelledby="sec-portal-title">
+      <div class="section-head">
+        <div class="section-title-group">
+          <span class="section-num">ENTRY PORTAL · 核心試算模組導覽</span>
+          <h2 id="sec-portal-title">選擇退休金試算模組</h2>
+        </div>
+        <p class="section-sub">點擊任一張入口卡片，立即切換下方一站式試算工作臺並同步預覽即時金額</p>
+      </div>
+
+      <div class="portal-grid">
+        <!-- Card 1: 綜合退休金 -->
+        <article class="portal-card is-active" id="portal-card-comp">
+          <div>
+            <div class="portal-card-head">
+              <span class="portal-card-index">模組壹 · 核心雙軌</span>
+              <span class="portal-tag" id="card-tag-comp">檢視中</span>
+            </div>
+            <h3>鎖頭銀行綜合退休金試算</h3>
+          </div>
+          <div class="portal-formula-box">
+            平均薪資 × 45基數 ＋ 公保保俸 × 36個月
+          </div>
+          <p class="portal-desc">
+            依鎖頭銀行綜合公式計算行員退休一次給付總額，整合「未休假加班費折算」計入均薪效果，並附優惠存款（優存）年息與月領試算說明。
+          </p>
+          <div>
+            <div class="portal-preview-row">
+              <span class="portal-preview-label">目前試算一次領總額</span>
+              <span class="portal-preview-val" id="card-val-comp">NT$ 0</span>
+            </div>
+            <div style="margin-top: var(--space-md);">
+              <button type="button" class="btn btn-primary" style="width: 100%;" onclick="switchModule('comp', true)">
+                進入綜合退休金試算 →
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 2: 勞退新制 -->
+        <article class="portal-card" id="portal-card-labor">
+          <div>
+            <div class="portal-card-head">
+              <span class="portal-card-index">模組貳 · 複利專戶</span>
+              <span class="portal-tag" id="card-tag-labor">點擊切換</span>
+            </div>
+            <h3>鎖頭銀行勞退新制試算</h3>
+          </div>
+          <div class="portal-formula-box">
+            （個人自提 0–6% ＋ 雇主 6%）× 年化複利
+          </div>
+          <p class="portal-desc">
+            模擬勞退新制個人專戶長期複利成長軌跡，比較「僅雇主提繳 6%」與「個人自願提繳 0–6%」之累積總額、節稅效益與預估月領退休金。
+          </p>
+          <div>
+            <div class="portal-preview-row">
+              <span class="portal-preview-label">預估退休專戶累積</span>
+              <span class="portal-preview-val" id="card-val-labor">NT$ 0</span>
+            </div>
+            <div style="margin-top: var(--space-md);">
+              <button type="button" class="btn btn-secondary" style="width: 100%;" onclick="switchModule('labor', true)">
+                進入勞退新制試算 →
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 3: 公保退休金 -->
+        <article class="portal-card" id="portal-card-gongbao">
+          <div>
+            <div class="portal-card-head">
+              <span class="portal-card-index">模組參 · 養老給付</span>
+              <span class="portal-tag" id="card-tag-gongbao">點擊切換</span>
+            </div>
+            <h3>鎖頭銀行公保退休金試算</h3>
+          </div>
+          <div class="portal-formula-box">
+            公保保俸 × 給付月數（最高 36 個月）／ 年金率
+          </div>
+          <p class="portal-desc">
+            專為公教人員保險設計之養老給付與保俸計算工具。支援依職階帶入參考保俸，並即時對照「一次養老給付」與「養老年金月領」之回本年數。
+          </p>
+          <div>
+            <div class="portal-preview-row">
+              <span class="portal-preview-label">一次養老給付預估</span>
+              <span class="portal-preview-val" id="card-val-gongbao">NT$ 0</span>
+            </div>
+            <div style="margin-top: var(--space-md);">
+              <button type="button" class="btn btn-secondary" style="width: 100%;" onclick="switchModule('gongbao', true)">
+                進入公保退休金試算 →
+              </button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         SECTION 2: ONE-STOP INTERACTIVE WORKSPACE (一站式試算工作臺)
+         ================================================================= -->
+    <section id="workspace-section" aria-labelledby="sec-workspace-title">
+      <div class="section-head">
+        <div class="section-title-group">
+          <span class="section-num">INTERACTIVE WORKSPACE · 一站式切換試算工作臺</span>
+          <h2 id="sec-workspace-title">即時參數推估與公式明細</h2>
+        </div>
+        <div class="status-toast" id="save-toast" role="status" aria-live="polite">
+          已自動儲存試算參數
+        </div>
+      </div>
+
+      <div class="workspace-shell">
+        <!-- Codex Bookmark Navigation -->
+        <div class="bookmark-bar" role="tablist" aria-label="試算模組切換書籤">
+          <button type="button" class="bookmark-tab" role="tab" id="tab-comp" aria-selected="true" aria-controls="panel-comp" onclick="switchModule('comp', false)">
+            <span class="tab-seal-dot" aria-hidden="true"></span>
+            壹・鎖頭銀行綜合退休金試算
+          </button>
+          <button type="button" class="bookmark-tab" role="tab" id="tab-labor" aria-selected="false" aria-controls="panel-labor" onclick="switchModule('labor', false)">
+            <span class="tab-seal-dot" aria-hidden="true"></span>
+            貳・鎖頭銀行勞退新制試算
+          </button>
+          <button type="button" class="bookmark-tab" role="tab" id="tab-gongbao" aria-selected="false" aria-controls="panel-gongbao" onclick="switchModule('gongbao', false)">
+            <span class="tab-seal-dot" aria-hidden="true"></span>
+            參・鎖頭銀行公保退休金試算
+          </button>
+          <button type="button" class="bookmark-tab" role="tab" id="tab-ledger" aria-selected="false" aria-controls="panel-ledger" onclick="switchModule('ledger', false)">
+            <span class="tab-seal-dot" aria-hidden="true"></span>
+            肆・三軌彙總比較表
+          </button>
+        </div>
+
+        <div class="workspace-body">
+          <!-- ===========================================================
+               PANEL 1: 鎖頭銀行綜合退休金試算
+               =========================================================== -->
+          <div class="module-panel is-active" id="panel-comp" role="tabpanel" aria-labelledby="tab-comp">
+            <div class="calc-grid">
+              <!-- Inputs -->
+              <div class="input-pane">
+                <div class="pane-header">
+                  <h4>薪資與年資參數設定</h4>
+                  <span class="field-hint">即時運算更新</span>
+                </div>
+
+                <div class="field-group">
+                  <span class="field-label">快捷年資與職階範例</span>
+                  <div class="preset-row">
+                    <button type="button" class="preset-btn" onclick="applyCompPreset(72000, 20, 10, 48000, 24)">20年資歷（35基數）</button>
+                    <button type="button" class="preset-btn" onclick="applyCompPreset(92000, 30, 14, 58500, 36)">30年滿額（45基數）</button>
+                    <button type="button" class="preset-btn" onclick="applyCompPreset(118000, 35, 21, 74500, 36)">高階主管（45基數）</button>
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <div class="field-label-row">
+                    <label class="field-label" for="comp-base-salary-num">退休前月薪資（元）</label>
+                    <span class="field-hint">含本薪與固定津貼</span>
+                  </div>
+                  <div class="dual-control">
+                    <input type="range" id="comp-base-salary-range" min="30000" max="250000" step="1000" value="92000" aria-label="退休前月薪資滑桿" oninput="onCompSlider('baseSalary', this.value)">
+                    <input type="number" class="num-input" id="comp-base-salary-num" min="30000" max="250000" step="1000" value="92000" oninput="onCompNumber('baseSalary', this.value)">
+                  </div>
+                  <span class="field-error" id="err-comp-baseSalary">請輸入 30,000 至 250,000 之間的金額。</span>
+                </div>
+
+                <div class="field-group">
+                  <div class="field-label-row">
+                    <label class="field-label" for="comp-seniority-num">行員服務年資（年）</label>
+                    <span class="field-hint" id="comp-units-hint">對應 45 基數（上限45）</span>
+                  </div>
+                  <div class="dual-control">
+                    <input type="range" id="comp-seniority-range" min="1" max="45" step="1" value="30" aria-label="服務年資滑桿" oninput="onCompSlider('seniorityYears', this.value)">
+                    <input type="number" class="num-input" id="comp-seniority-num" min="1" max="45" step="1" value="30" oninput="onCompNumber('seniorityYears', this.value)">
+                  </div>
+                  <span class="field-error" id="err-comp-seniorityYears">請輸入 1 至 45 年之間。</span>
+                </div>
+
+                <div class="field-group">
+                  <div class="field-label-row">
+                    <label class="field-label" for="comp-leave-days-num">未休假加班費折算（天數）</label>
+                    <span class="field-hint">依日薪折算併入平均薪資</span>
+                  </div>
+                  <div class="dual-control">
+                    <input type="range" id="comp-leave-days-range" min="0" max="30" step="1" value="14" aria-label="未休假折算天數滑桿" oninput="onCompSlider('unusedLeaveDays', this.value)">
+                    <input type="number" class="num-input" id="comp-leave-days-num" min="0" max="30" step="1" value="14" oninput="onCompNumber('unusedLeaveDays', this.value)">
+                  </div>
+                  <span class="field-error" id="err-comp-unusedLeaveDays">請輸入 0 至 30 天之間。</span>
+                </div>
+
+                <div class="field-group">
+                  <label class="field-label" for="comp-spread-months">未休假加班費均薪攤提基準</label>
+                  <select class="select-input" id="comp-spread-months" onchange="onCompSelect('leaveSpreadMonths', this.value)">
+                    <option value="6" selected>退休前 6 個月平均工資基準（除以 6）</option>
+                    <option value="12">全年度 12 個月平均基準（除以 12）</option>
+                  </select>
+                </div>
+
+                <div class="field-group">
+                  <div class="field-label-row">
+                    <label class="field-label" for="comp-gongbao-sal-num">公保保險俸額（保俸・元）</label>
+                    <span class="field-hint">公保計算基準俸額</span>
+                  </div>
+                  <div class="dual-control">
+                    <input type="range" id="comp-gongbao-sal-range" min="20000" max="150000" step="500" value="58500" aria-label="公保保俸滑桿" oninput="onCompSlider('gongbaoSalary', this.value)">
+                    <input type="number" class="num-input" id="comp-gongbao-sal-num" min="20000" max="150000" step="500" value="58500" oninput="onCompNumber('gongbaoSalary', this.value)">
+                  </div>
+                  <span class="field-error" id="err-comp-gongbaoSalary">請輸入 20,000 至 150,000 之間的金額。</span>
+                </div>
+
+                <div class="field-group">
+                  <div class="field-label-row">
+                    <label class="field-label" for="comp-gongbao-months-num">公保給付月數（個月）</label>
+                    <span class="field-hint">最高採計 36 個月</span>
+                  </div>
+                  <div class="dual-control">
+                    <input type="range" id="comp-gongbao-months-range" min="1" max="36" step="1" value="36" aria-label="公保給付月數滑桿" oninput="onCompSlider('gongbaoMonths', this.value)">
+                    <input type="number" class="num-input" id="comp-gongbao-months-num" min="1" max="36" step="1" value="36" oninput="onCompNumber('gongbaoMonths', this.value)">
+                  </div>
+                  <span class="field-error" id="err-comp-gongbaoMonths">請輸入 1 至 36 個月之間。</span>
+                </div>
+              </div>
+
+              <!-- Outputs & Visualizations -->
+              <div class="output-pane">
+                <div class="verdict-card">
+                  <div class="verdict-top">
+                    <div>
+                      <div class="verdict-kicker">鎖頭銀行綜合退休金一次領總額</div>
+                      <div class="verdict-amount" id="out-comp-total">NT$ 0</div>
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="syncGongbaoFromComp()">
+                      同步公保保俸至模組參
+                    </button>
+                  </div>
+                  <div class="verdict-submetrics">
+                    <div class="submetric">
+                      <span class="submetric-label">計薪平均薪資（含未休假折算）</span>
+                      <span class="submetric-val" id="out-comp-eff-sal">NT$ 0</span>
+                    </div>
+                    <div class="submetric">
+                      <span class="submetric-label">銀行退休金（× <span id="out-comp-units">45</span> 基數）</span>
+                      <span class="submetric-val" id="out-comp-bank-part">NT$ 0</span>
+                    </div>
+                    <div class="submetric">
+                      <span class="submetric-label">公保養老給付（× <span id="out-comp-gb-m">36</span> 個月）</span>
+                      <span class="submetric-val is-vermilion" id="out-comp-gb-part">NT$ 0</span>
+                    </div>
+                    <div class="submetric">
+                      <span class="submetric-label">未休假折算貢獻總增額</span>
+                      <span class="submetric-val is-positive" id="out-comp-leave-bonus">+NT$ 0</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Formula Breakdown -->
+                <div class="breakdown-card">
+                  <h4 class="breakdown-title">
+                    <span>公式演算明細</span>
+                    <span class="field-hint">平均薪資 × 基數 ＋ 公保保俸 × 月數</span>
+                  </h4>
+                  <div class="formula-steps" id="comp-breakdown-steps"></div>
+                </div>
+
+                <!-- Visual Composition Bar SVG -->
+                <div class="chart-card">
+                  <div class="chart-header">
+                    <h4 class="chart-title">綜合退休金結構組成對照</h4>
+                    <div class="chart-legend">
+                      <span class="legend-item"><span class="legend-swatch" style="background: var(--data-1);"></span>本薪基數給付</span>
+                      <span class="legend-item"><span class="legend-swatch" style="background: var(--data-3);"></span>未休假折算增額</span>
+                      <span class="legend-item"><span class="legend-swatch" style="background: var(--data-2);"></span>公保保俸給付</span>
+                    </div>
+                  </div>
+                  <div class="svg-chart-wrap" id="comp-svg-chart" style="min-height: 170px;"></div>
+                </div>
+
+                <!-- Preferential Deposit Calculator & Explanation -->
+                <div class="pref-panel">
+                  <div class="pane-header" style="border-bottom-color: var(--outline-gold);">
+                    <h4>鎖頭銀行行員優惠存款（優存）試算說明</h4>
+                    <div class="preset-row">
+                      <button type="button" class="preset-btn" onclick="applyPrefPreset(2000000, 18.0)">公保優存 18%</button>
+                      <button type="button" class="preset-btn" onclick="applyPrefPreset(480000, 13.0)">行員儲蓄 13%</button>
+                      <button type="button" class="preset-btn" onclick="applyPrefPreset(5000000, 5.5)">專案優存 5.5%</button>
+                    </div>
+                  </div>
+
+                  <div class="pref-grid">
+                    <div class="field-group">
+                      <label class="field-label" for="comp-pref-cap">可辦理優存本金上限（元）</label>
+                      <input type="number" class="num-input" id="comp-pref-cap" min="0" max="10000000" step="10000" value="2000000" oninput="onCompNumber('prefCap', this.value)">
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label" for="comp-pref-rate">優存參考年利率（%）</label>
+                      <input type="number" class="num-input" id="comp-pref-rate" min="0" max="20" step="0.5" value="18.0" oninput="onCompNumber('prefRate', this.value)">
+                    </div>
+                  </div>
+
+                  <div class="pref-result-strip">
+                    <div>
+                      <div class="submetric-label">實際可存本金（取總額與上限較小值）</div>
+                      <div class="submetric-val" id="out-pref-principal">NT$ 0</div>
+                    </div>
+                    <div>
+                      <div class="submetric-label">預估每月優存利息</div>
+                      <div class="submetric-val is-positive" id="out-pref-monthly">NT$ 0 / 月</div>
+                    </div>
+                    <div>
+                      <div class="submetric-label">預估每年優存利息</div>
+                      <div class="submetric-val is-vermilion" id="out-pref-annual">NT$ 0 / 年</div>
+                    </div>
+                  </div>
+                  <p class="portal-desc" style="font-size: 0.8125rem;">
+                    說明：退休行員辦理優惠存款，其適格本金上限與優惠利率（如公保優存、在職／退休行員儲蓄優存額度）需依鎖頭銀行最新人事退撫規章及主管機關核定為準。若辦理 18% 公保優存，實務上係以公保養老給付金額為主要計算基準。
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===========================================================
+               PANEL 2: 鎖頭銀行勞退新制試算
+               =========================================================== -->
+          <div class="module-panel" id="panel-labor" role="tabpanel" aria-labelledby="tab-labor">
+            <div class="calc-grid">
+              <!-- Inputs -->
+              <div class="input-pane">
+                <div class="pane-header">
+                  <h4>勞退新制提繳與複利參數</h4>
+                  <span class="field-hint">月複利滾動試算</span>
+                </div>
+
+                <div class="field-group">
+                  <span class="field-label">提繳策略情境</span>
+                  <div class="preset-row">
+                    <button type="button" class="preset-btn" onclick="applyLaborPreset(0, 3.5)">僅雇主 6%（零自提）</button>
+                    <button type="button" class="preset-btn" onclick="applyLaborPreset(3, 4.0)">穩健自提 3%</button>
+                    <button type="button" class="preset-btn" onclick="applyLaborPreset(6, 4.5)">滿額自提 6%（節稅最大化）</button>
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <div class="field-label-row">
+                    <label class="field-label" for="labor-wage-num">月提繳工資（元）</label>
+                    <span class="field-hint">最高分級參考 150,000 元</span>
+                  </div>
+                  <div class="dual-control">
+                    <input type="range" id="labor-wage-range" min="15800" max="150000" step="600" value="87600" aria-label="月提繳工資滑桿" oninput="onLaborSlider('monthlyWage', this.value)">
+                    <input type="number" class="num-input" id="labor-wage-num" min="15800" max="150000" step="100" value="87600" oninput="onLaborNumber('monthlyWage', this.value)">
+                  </div>
+                  <span class="field-error" id="err-labor-monthlyWage">請輸入 15,800 至 150,000 之間的金額。</span>
+                </div>
+
+                <div class="readonly-badge">
+                  <span>雇主法定提繳率（不可低於 6%）</span>
+                  <strong>6.0%（每月 <span id="labor-emp-monthly">NT$ 5,256</span>）</strong>
+                </div>
+
+                <div class="field-group">
+                  <div class="field-label-row">
+                    <label class="field-label" for="labor-personal-num">個人自願提繳率（0% – 6%）</label>
+                    <span class="field-hint" id="labor-per-monthly-hint">每月自提 NT$ 5,256</span>
+                  </div>
+                  <div class="dual-control">
+                    <input type="range" id="labor-personal-range" min="0" max="6" step="0.5" value="6" aria-label="個人自提率滑桿" oninput="onLaborSlider('personalRate', this.value)">
+                    <input type="number" class="num-input" id="labor-personal-num" min="0" max="6" step="0.5" value="6" oninput="onLaborNumber('personalRate', this.value)">
+                  </div>
+                  <span class="field-error" id="err-labor-personalRate">個人自提率需介於 0% 至 6% 之間。</span>
+                </div>
+
+                <div class="field-group">
+                  <div class="field-label-row">
+                    <label class="field-label" for="labor-return-num">預估年化投資報酬率（%）</label>
+                    <span class="field-hint">新制勞退歷年平均參考 3%–5%</span>
+                  </div>
+                  <div class="dual-control">
+                    <input type="range" id="labor-return-range" min="0.5" max="9" step="0.5" value="4.0" aria-label="年化報酬率滑桿" oninput="onLaborSlider('annualReturn', this.value)">
+                    <input type="number" class="num-input" id="labor-return-num" min="0.5" max="9" step="0.1" value="4.0" oninput="onLaborNumber('annualReturn', this.value)">
+                  </div>
+                  <span class="field-error" id="err-labor-annualReturn">請輸入 0.5% 至 9.0% 之間。</span>
+                </div>
+
+                <div class="field-group">
+                  <div class="field-label-row">
+                    <label class="field-label" for="labor-years-num">預計繼續提繳年數（年）</label>
+                    <span class="field-hint">距離退休剩餘年資</span>
+                  </div>
+                  <div class="dual-control">
+                    <input type="range" id="labor-years-range" min="1" max="45" step="1" value="25" aria-label="繼續提繳年數滑桿" oninput="onLaborSlider('yearsToRetire', this.value)">
+                    <input type="number" class="num-input" id="labor-years-num" min="1" max="45" step="1" value="25" oninput="onLaborNumber('yearsToRetire', this.value)">
+                  </div>
+                  <span class="field-error" id="err-labor-yearsToRetire">請輸入 1 至 45 年之間。</span>
+                </div>
+
+                <div class="field-group">
+                  <div class="field-label-row">
+                    <label class="field-label" for="labor-current-num">目前已累積專戶金額（元）</label>
+                    <span class="field-hint">可填入勞保局查詢之現值</span>
+                  </div>
+                  <div class="dual-control">
+                    <input type="range" id="labor-current-range" min="0" max="5000000" step="10000" value="450000" aria-label="目前累積專戶滑桿" oninput="onLaborSlider('currentBalance', this.value)">
+                    <input type="number" class="num-input" id="labor-current-num" min="0" max="10000000" step="10000" value="450000" oninput="onLaborNumber('currentBalance', this.value)">
+                  </div>
+                  <span class="field-error" id="err-labor-currentBalance">請輸入 0 至 10,000,000 之間的金額。</span>
+                </div>
+
+                <div class="field-group">
+                  <div class="field-label-row">
+                    <label class="field-label" for="labor-payout-years">月領領取年數（平均餘命）</label>
+                    <label class="field-label" for="labor-tax-bracket">所得稅邊際稅率</label>
+                  </div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm);">
+                    <select class="select-input" id="labor-payout-years" onchange="onLaborSelect('payoutYears', this.value)">
+                      <option value="15">15 年（至 80 歲）</option>
+                      <option value="20" selected>20 年（至 85 歲）</option>
+                      <option value="24">24 年（平均餘命基準）</option>
+                    </select>
+                    <select class="select-input" id="labor-tax-bracket" onchange="onLaborSelect('taxBracket', this.value)">
+                      <option value="5">5% 稅率</option>
+                      <option value="12">12% 稅率</option>
+                      <option value="20" selected>20% 稅率</option>
+                      <option value="30">30% 稅率</option>
+                      <option value="40">40% 稅率</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Outputs -->
+              <div class="output-pane">
+                <div class="verdict-card">
+                  <div class="verdict-top">
+                    <div>
+                      <div class="verdict-kicker">預估退休時勞退個人專戶總累積</div>
+                      <div class="verdict-amount" id="out-labor-total">NT$ 0</div>
+                    </div>
+                    <div>
+                      <span class="portal-tag" id="out-labor-rate-badge">總提繳率 12.0%</span>
+                    </div>
+                  </div>
+                  <div class="verdict-submetrics">
+                    <div class="submetric">
+                      <span class="submetric-label">預估月領退休金（<span id="out-labor-payout-yr">20</span>年期）</span>
+                      <span class="submetric-val is-vermilion" id="out-labor-monthly">NT$ 0 / 月</span>
+                    </div>
+                    <div class="submetric">
+                      <span class="submetric-label">投資複利總收益</span>
+                      <span class="submetric-val is-positive" id="out-labor-gain">+NT$ 0</span>
+                    </div>
+                    <div class="submetric">
+                      <span class="submetric-label">自提帶來的額外複利資產</span>
+                      <span class="submetric-val" id="out-labor-diff">+NT$ 0</span>
+                    </div>
+                    <div class="submetric">
+                      <span class="submetric-label">自提每年節省所得稅（估算）</span>
+                      <span class="submetric-val is-positive" id="out-labor-taxsave">NT$ 0 / 年</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Breakdown -->
+                <div class="breakdown-card">
+                  <h4 class="breakdown-title">
+                    <span>本金與複利結構拆解</span>
+                    <span class="field-hint">依年化 1.5% 年金利率估算月領金額</span>
+                  </h4>
+                  <div class="formula-steps" id="labor-breakdown-steps"></div>
+                </div>
+
+                <!-- Compound Growth Chart -->
+                <div class="chart-card">
+                  <div class="chart-header">
+                    <h4 class="chart-title">勞退新制複利成長對照曲線</h4>
+                    <div class="chart-legend">
+                      <span class="legend-item"><span class="legend-swatch" style="background: var(--data-1);"></span>雇主＋個人自提總額</span>
+                      <span class="legend-item"><span class="legend-swatch" style="background: var(--data-context);"></span>僅雇主提繳 6% 基準</span>
+                    </div>
+                  </div>
+                  <div class="svg-chart-wrap" id="labor-svg-chart" style="min-height: 260px;"></div>
+                  <div class="chart-readout" id="labor-chart-readout">
+                    <span>移動滑鼠或點擊年份節點，查看逐年複利累積金額</span>
+                    <span id="labor-readout-val"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===========================================================
+               PANEL 3: 鎖頭銀行公保退休金試算
+               =========================================================== -->
+          <div class="module-panel" id="panel-gongbao" role="tabpanel" aria-labelledby="tab-gongbao">
+            <div class="calc-grid">
+              <!-- Inputs -->
+              <div class="input-pane">
+                <div class="pane-header">
+                  <h4>公保保俸與年資參數</h4>
+                  <span class="field-hint">養老給付試算</span>
+                </div>
+
+                <div class="field-group">
+                  <span class="field-label">鎖頭銀行職階保俸對照範例（點擊帶入）</span>
+                  <div class="preset-row">
+                    <button type="button" class="preset-btn" onclick="applyGbPreset(38500, 15)">初任辦事員 ($38,500)</button>
+                    <button type="button" class="preset-btn" onclick="applyGbPreset(49500, 22)">資深專員 ($49,500)</button>
+                    <button type="button" class="preset-btn" onclick="applyGbPreset(58500, 30)">襄理 / 科長 ($58,500)</button>
+                    <button type="button" class="preset-btn" onclick="applyGbPreset(74500, 33)">經理級 ($74,500)</button>
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <div class="field-label-row">
+                    <label class="field-label" for="gb-salary-num">公保保險俸額（保俸・元）</label>
+                    <span class="field-hint">計算養老給付之基準</span>
+                  </div>
+                  <div class="dual-control">
+                    <input type="range" id="gb-salary-range" min="20000" max="150000" step="500" value="58500" aria-label="公保保俸滑桿" oninput="onGbSlider('insuredSalary', this.value)">
+                    <input type="number" class="num-input" id="gb-salary-num" min="20000" max="150000" step="500" value="58500" oninput="onGbNumber('insuredSalary', this.value)">
+                  </div>
+                  <span class="field-error" id="err-gb-insuredSalary">請輸入 20,000 至 150,000 之間的金額。</span>
+                </div>
+
+                <div class="field-group">
+                  <div class="field-label-row">
+                    <label class="field-label" for="gb-years-num">公保有效投保年資（年）</label>
+                    <span class="field-hint">一次領最高採計 30 年（36個月）</span>
+                  </div>
+                  <div class="dual-control">
+                    <input type="range" id="gb-years-range" min="1" max="45" step="1" value="30" aria-label="公保投保年資滑桿" oninput="onGbSlider('insuredYears', this.value)">
+                    <input type="number" class="num-input" id="gb-years-num" min="1" max="45" step="1" value="30" oninput="onGbNumber('insuredYears', this.value)">
+                  </div>
+                  <span class="field-error" id="err-gb-insuredYears">請輸入 1 至 45 年之間。</span>
+                </div>
+
+                <div class="field-group">
+                  <div class="field-label-row">
+                    <label class="field-label" for="gb-annuity-num">養老年金試算給付率（% / 年）</label>
+                    <span class="field-hint">法定區間 0.75% – 1.30%</span>
+                  </div>
+                  <div class="dual-control">
+                    <input type="range" id="gb-annuity-range" min="0.75" max="1.30" step="0.05" value="1.30" aria-label="公保養老年金給付率滑桿" oninput="onGbSlider('annuityRate', this.value)">
+                    <input type="number" class="num-input" id="gb-annuity-num" min="0.75" max="1.30" step="0.05" value="1.30" oninput="onGbNumber('annuityRate', this.value)">
+                  </div>
+                  <span class="field-error" id="err-gb-annuityRate">請輸入 0.75% 至 1.30% 之間。</span>
+                </div>
+
+                <div class="field-group">
+                  <label class="field-label" for="gb-life-years">退休後預期領取年數（對照曲線）</label>
+                  <select class="select-input" id="gb-life-years" onchange="onGbSelect('compareHorizon', this.value)">
+                    <option value="15">15 年對照期</option>
+                    <option value="20">20 年對照期</option>
+                    <option value="25" selected>25 年對照期（達長壽基準）</option>
+                    <option value="30">30 年對照期</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Outputs -->
+              <div class="output-pane">
+                <div class="verdict-card">
+                  <div class="verdict-top">
+                    <div>
+                      <div class="verdict-kicker">公保一次養老給付預估總額</div>
+                      <div class="verdict-amount" id="out-gb-lump">NT$ 0</div>
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="syncCompFromGongbao()">
+                      同步保俸至模組壹
+                    </button>
+                  </div>
+                  <div class="verdict-submetrics">
+                    <div class="submetric">
+                      <span class="submetric-label">一次領折算月數（上限 36 個月）</span>
+                      <span class="submetric-val" id="out-gb-months">36.0 個月</span>
+                    </div>
+                    <div class="submetric">
+                      <span class="submetric-label">改採「養老年金」預估月領</span>
+                      <span class="submetric-val is-vermilion" id="out-gb-monthly">NT$ 0 / 月</span>
+                    </div>
+                    <div class="submetric">
+                      <span class="submetric-label">年金總給付率（上限 35 年）</span>
+                      <span class="submetric-val" id="out-gb-total-pct">39.0%</span>
+                    </div>
+                    <div class="submetric">
+                      <span class="submetric-label">年金超越一次領之回本點</span>
+                      <span class="submetric-val is-positive" id="out-gb-breakeven">約 7.7 年</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Breakdown -->
+                <div class="breakdown-card">
+                  <h4 class="breakdown-title">
+                    <span>公保養老給付雙制試算明細</span>
+                    <span class="field-hint">一次給付 vs 年金給付</span>
+                  </h4>
+                  <div class="formula-steps" id="gb-breakdown-steps"></div>
+                </div>
+
+                <!-- Breakeven Chart -->
+                <div class="chart-card">
+                  <div class="chart-header">
+                    <h4 class="chart-title">一次給付 vs 養老年金累積領取對照</h4>
+                    <div class="chart-legend">
+                      <span class="legend-item"><span class="legend-swatch" style="background: var(--data-2);"></span>一次領本金水平線</span>
+                      <span class="legend-item"><span class="legend-swatch" style="background: var(--data-1);"></span>養老年金累積總額</span>
+                    </div>
+                  </div>
+                  <div class="svg-chart-wrap" id="gb-svg-chart" style="min-height: 250px;"></div>
+                  <div class="chart-readout" id="gb-chart-readout">
+                    <span>移動滑鼠或點擊年份，查看累積請領差額</span>
+                    <span id="gb-readout-val"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===========================================================
+               PANEL 4: 三軌彙總比較表 (Classical Ledger Overview)
+               =========================================================== -->
+          <div class="module-panel" id="panel-ledger" role="tabpanel" aria-labelledby="tab-ledger">
+            <div style="display: flex; flex-direction: column; gap: var(--space-lg);">
+              <div class="verdict-card">
+                <div class="verdict-top">
+                  <div>
+                    <div class="verdict-kicker">鎖頭銀行退撫規劃統合總帳</div>
+                    <div class="verdict-amount" id="out-ledger-grand">NT$ 0</div>
+                  </div>
+                  <div class="codex-actions">
+                    <button type="button" class="btn btn-primary" onclick="exportSummaryCsv()">
+                      下載完整比較試算表 (CSV)
+                    </button>
+                  </div>
+                </div>
+                <p class="portal-desc" style="margin: 0;">
+                  下表彙整三大試算模組之即時參數與預估結果。其中「模組壹・綜合退休金」已依據公式計入「公保保俸 × 36個月」，故統計雙軌退休一次領總資產時，採「模組壹 ＋ 模組貳」合併計算，避免公保金額重複計入。
+                </p>
+              </div>
+
+              <div class="ledger-table-wrap">
+                <table class="ledger-table">
+                  <thead>
+                    <tr>
+                      <th>試算模組</th>
+                      <th>核心計算公式 / 參數基準</th>
+                      <th class="num">一次領 / 專戶累積</th>
+                      <th class="num">預估每月現金流（參考）</th>
+                      <th>備註與連動說明</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ledger-tbody"></tbody>
+                  <tfoot id="ledger-tfoot"></tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         SECTION 3: REGULATORY & METHODOLOGY NOTES (典籍規章註釋)
+         ================================================================= -->
+    <section aria-labelledby="sec-notes-title">
+      <div class="section-head">
+        <div class="section-title-group">
+          <span class="section-num">CODEX ANNOTATIONS · 規章與試算說明</span>
+          <h2 id="sec-notes-title">公式依據與實務注意事項</h2>
+        </div>
+      </div>
+
+      <div class="notes-grid">
+        <article class="note-card">
+          <h3>一、綜合退休金與未休假加班費折算</h3>
+          <p>
+            本試算依「平均薪資 × 45基數 ＋ 公保保俸 × 36個月」為標準架構。行員退休前未休畢之特別休假折算加班費，實務上可依退休前 6 個月或 12 個月均值攤入計薪平均薪資，進而放大 45 基數之退休金總額。
+          </p>
+        </article>
+
+        <article class="note-card">
+          <h3>二、行員優惠存款（優存）試算原則</h3>
+          <p>
+            優存試算旨在協助評估一次領退休金轉存生息之月退替代率。公保優存或鎖頭銀行退休行員優惠儲蓄之適用年資區間、本金天花板及優惠利率，均依鎖頭銀行正式退撫辦法核定結果為準。
+          </p>
+        </article>
+
+        <article class="note-card">
+          <h3>三、勞退新制自提 0–6% 雙重優勢</h3>
+          <p>
+            勞退新制除雇主每月法定提繳不低於 6% 外，行員個人自願提繳 0% 至 6% 之金額，不僅可享當年度綜合所得稅全額免稅遞延優惠，更可參與長期投資複利分配，顯著提升退休月領金額。
+          </p>
+        </article>
+
+        <article class="note-card">
+          <h3>四、公保一次養老給付與年金抉擇</h3>
+          <p>
+            公保投保年資每滿 1 年可領 1.2 個月，滿 30 年即達 36 個月上限。若選擇改領養老年金（給付率 0.75% 至 1.30%），雖初期現金流較慢，但約 7 至 9 年後累積領取額即可超越一次給付，適合長壽退休規劃。
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <footer class="codex-footer">
+      <div>
+        <strong>鎖頭銀行退休金試算中心</strong> — 本頁面試算數據僅供退休理財模擬參考，正式退休金核發金額以鎖頭銀行人力資源部門核計為準。
+      </div>
+      <div>
+        資料基準：綜合公式、勞退新制條例及公教人員保險養老給付通則
+      </div>
+    </footer>
+  </main>
+
+  <api-shim></api-shim>
+  <script>
+    // =========================================================================
+    // STATE MODEL & DEFAULTS
+    // =========================================================================
+    const DEFAULT_STATE = {
+      activeModule: 'comp',
+      comp: {
+        baseSalary: 92000,
+        seniorityYears: 30,
+        unusedLeaveDays: 14,
+        leaveSpreadMonths: 6,
+        gongbaoSalary: 58500,
+        gongbaoMonths: 36,
+        prefCap: 2000000,
+        prefRate: 18.0
+      },
+      labor: {
+        monthlyWage: 87600,
+        personalRate: 6.0,
+        annualReturn: 4.0,
+        yearsToRetire: 25,
+        currentBalance: 450000,
+        payoutYears: 20,
+        taxBracket: 20
+      },
+      gongbao: {
+        insuredSalary: 58500,
+        insuredYears: 30,
+        annuityRate: 1.30,
+        compareHorizon: 25
+      }
+    };
+
+    let appState = cloneState(DEFAULT_STATE);
+    let saveToastTimer = null;
+
+    function cloneState(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    function fmtTWD(num) {
+      const n = Math.round(Number(num) || 0);
+      return `NT$ ${n.toLocaleString('zh-TW')}`;
+    }
+
+    function fmtCompactTWD(num) {
+      const n = Math.round(Number(num) || 0);
+      if (n >= 10000) {
+        return `${(n / 10000).toFixed(1)}萬`;
+      }
+      return n.toLocaleString('zh-TW');
+    }
+
+    function clamp(val, min, max) {
+      return Math.min(max, Math.max(min, val));
+    }
+
+    // =========================================================================
+    // PERSISTENCE SHIM (notebookAppApi)
+    // =========================================================================
+    async function loadPersistedState() {
+      try {
+        if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === 'function') {
+          const saved = await window.notebookAppApi.getAppState();
+          if (saved && typeof saved === 'object') {
+            if (saved.activeModule) appState.activeModule = saved.activeModule;
+            if (saved.comp) Object.assign(appState.comp, saved.comp);
+            if (saved.labor) Object.assign(appState.labor, saved.labor);
+            if (saved.gongbao) Object.assign(appState.gongbao, saved.gongbao);
+          }
+        }
+      } catch (e) {
+        // Fallback silently to DEFAULT_STATE
+      }
+    }
+
+    async function persistState(showToast) {
+      try {
+        if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === 'function') {
+          await window.notebookAppApi.setAppState(appState);
+          if (showToast) triggerSaveToast();
+        }
+      } catch (e) {
+        // Ignore persistence errors in standalone preview
+      }
+    }
+
+    function triggerSaveToast() {
+      const toast = document.getElementById('save-toast');
+      if (!toast) return;
+      toast.classList.add('is-visible');
+      clearTimeout(saveToastTimer);
+      saveToastTimer = setTimeout(function () {
+        toast.classList.remove('is-visible');
+      }, 1800);
+    }
+
+    // =========================================================================
+    // COMPUTATION ENGINES
+    // =========================================================================
+    function computeComp() {
+      const c = appState.comp;
+      const units = Math.min(45, c.seniorityYears <= 15 ? c.seniorityYears * 2 : 30 + (c.seniorityYears - 15));
+      const leavePayTotal = Math.round((c.baseSalary / 30) * c.unusedLeaveDays);
+      const leaveMonthlyAdd = Math.round(leavePayTotal / c.leaveSpreadMonths);
+      const effectiveAvgSalary = c.baseSalary + leaveMonthlyAdd;
+      const baseOnlyPension = c.baseSalary * units;
+      const leaveBonusTotal = leaveMonthlyAdd * units;
+      const bankPension = effectiveAvgSalary * units;
+      const gongbaoLump = c.gongbaoSalary * c.gongbaoMonths;
+      const totalComp = bankPension + gongbaoLump;
+
+      const prefPrincipal = Math.min(totalComp, Math.max(0, c.prefCap));
+      const prefAnnual = Math.round(prefPrincipal * (c.prefRate / 100));
+      const prefMonthly = Math.round(prefAnnual / 12);
+
+      return {
+        units,
+        leavePayTotal,
+        leaveMonthlyAdd,
+        effectiveAvgSalary,
+        baseOnlyPension,
+        leaveBonusTotal,
+        bankPension,
+        gongbaoLump,
+        totalComp,
+        prefPrincipal,
+        prefAnnual,
+        prefMonthly
+      };
+    }
+
+    function computeLabor() {
+      const l = appState.labor;
+      const rMonthly = (l.annualReturn / 100) / 12;
+      const mEmp = l.monthlyWage * 0.06;
+      const mPer = l.monthlyWage * (l.personalRate / 100);
+
+      let balTotal = l.currentBalance;
+      let balEmpOnly = l.currentBalance;
+      let principalEmp = 0;
+      let principalPer = 0;
+
+      const series = [{
+        year: 0,
+        total: Math.round(balTotal),
+        empOnly: Math.round(balEmpOnly)
+      }];
+
+      for (let yr = 1; yr <= l.yearsToRetire; yr++) {
+        for (let m = 0; m < 12; m++) {
+          balTotal = balTotal * (1 + rMonthly) + mEmp + mPer;
+          balEmpOnly = balEmpOnly * (1 + rMonthly) + mEmp;
+          principalEmp += mEmp;
+          principalPer += mPer;
+        }
+        series.push({
+          year: yr,
+          total: Math.round(balTotal),
+          empOnly: Math.round(balEmpOnly)
+        });
+      }
+
+      const finalTotal = Math.round(balTotal);
+      const finalEmpOnly = Math.round(balEmpOnly);
+      const totalPrincipal = Math.round(l.currentBalance + principalEmp + principalPer);
+      const totalGain = Math.max(0, finalTotal - totalPrincipal);
+      const personalDiff = Math.max(0, finalTotal - finalEmpOnly);
+
+      // Monthly annuity estimate using 1.5% statutory annuity conversion rate
+      const annRateM = 0.015 / 12;
+      const nMonths = l.payoutYears * 12;
+      const monthlyAnnuity = Math.round(
+        finalTotal * annRateM / (1 - Math.pow(1 + annRateM, -nMonths))
+      );
+
+      // Tax savings estimate (annual personal contribution * tax bracket)
+      const annualTaxSave = Math.round(mPer * 12 * (l.taxBracket / 100));
+
+      return {
+        mEmp: Math.round(mEmp),
+        mPer: Math.round(mPer),
+        principalEmp: Math.round(principalEmp),
+        principalPer: Math.round(principalPer),
+        totalGain,
+        finalTotal,
+        finalEmpOnly,
+        personalDiff,
+        monthlyAnnuity,
+        annualTaxSave,
+        series
+      };
+    }
+
+    function computeGongbao() {
+      const g = appState.gongbao;
+      // 1.2 months per year, max 36 months
+      const lumpMonths = Math.min(36, Number((g.insuredYears * 1.2).toFixed(1)));
+      const lumpSum = Math.round(g.insuredSalary * lumpMonths);
+
+      // Annuity: min(35, insuredYears) * annuityRate%
+      const countedAnnuityYears = Math.min(35, g.insuredYears);
+      const totalPct = Number((countedAnnuityYears * g.annuityRate).toFixed(2));
+      const monthlyAnnuity = Math.round(g.insuredSalary * (totalPct / 100));
+      const annualAnnuity = monthlyAnnuity * 12;
+      const breakevenYears = annualAnnuity > 0 ? Number((lumpSum / annualAnnuity).toFixed(1)) : 0;
+
+      const series = [];
+      for (let yr = 0; yr <= g.compareHorizon; yr++) {
+        series.push({
+          year: yr,
+          lump: lumpSum,
+          annuityCum: annualAnnuity * yr
+        });
+      }
+
+      return {
+        lumpMonths,
+        lumpSum,
+        countedAnnuityYears,
+        totalPct,
+        monthlyAnnuity,
+        annualAnnuity,
+        breakevenYears,
+        series
+      };
+    }
+
+    // =========================================================================
+    // UI RENDERERS
+    // =========================================================================
+    function renderAll() {
+      const compRes = computeComp();
+      const laborRes = computeLabor();
+      const gbRes = computeGongbao();
+
+      renderHeaderAndCards(compRes, laborRes, gbRes);
+      renderCompPanel(compRes);
+      renderLaborPanel(laborRes);
+      renderGongbaoPanel(gbRes);
+      renderLedgerPanel(compRes, laborRes, gbRes);
+    }
+
+    function renderHeaderAndCards(compRes, laborRes, gbRes) {
+      const hdrComp = document.getElementById('hdr-comp-total');
+      const hdrCompNote = document.getElementById('hdr-comp-note');
+      const hdrLabor = document.getElementById('hdr-labor-total');
+      const hdrLaborNote = document.getElementById('hdr-labor-note');
+      const hdrGrand = document.getElementById('hdr-grand-total');
+
+      if (hdrComp) hdrComp.textContent = fmtTWD(compRes.totalComp);
+      if (hdrCompNote) hdrCompNote.textContent = `平均薪資×${compRes.units}基數 ＋ 公保保俸×${appState.comp.gongbaoMonths}個月`;
+      if (hdrLabor) hdrLabor.textContent = fmtTWD(laborRes.finalTotal);
+      if (hdrLaborNote) hdrLaborNote.textContent = `雇主6% ＋ 自提${appState.labor.personalRate}%（${appState.labor.yearsToRetire}年複利）`;
+      if (hdrGrand) hdrGrand.textContent = fmtTWD(compRes.totalComp + laborRes.finalTotal);
+
+      const cardComp = document.getElementById('card-val-comp');
+      const cardLabor = document.getElementById('card-val-labor');
+      const cardGb = document.getElementById('card-val-gongbao');
+
+      if (cardComp) cardComp.textContent = fmtTWD(compRes.totalComp);
+      if (cardLabor) cardLabor.textContent = fmtTWD(laborRes.finalTotal);
+      if (cardGb) cardGb.textContent = fmtTWD(gbRes.lumpSum);
+    }
+
+    function renderCompPanel(res) {
+      const c = appState.comp;
+      setText('comp-units-hint', `對應 ${res.units} 基數（上限 45 基數）`);
+      setText('out-comp-total', fmtTWD(res.totalComp));
+      setText('out-comp-eff-sal', fmtTWD(res.effectiveAvgSalary));
+      setText('out-comp-units', String(res.units));
+      setText('out-comp-bank-part', fmtTWD(res.bankPension));
+      setText('out-comp-gb-m', String(c.gongbaoMonths));
+      setText('out-comp-gb-part', fmtTWD(res.gongbaoLump));
+      setText('out-comp-leave-bonus', `+${fmtTWD(res.leaveBonusTotal)}`);
+
+      setText('out-pref-principal', fmtTWD(res.prefPrincipal));
+      setText('out-pref-monthly', `${fmtTWD(res.prefMonthly)} / 月`);
+      setText('out-pref-annual', `${fmtTWD(res.prefAnnual)} / 年`);
+
+      const stepsEl = document.getElementById('comp-breakdown-steps');
+      if (stepsEl) {
+        stepsEl.innerHTML = `
+          <div class="formula-step">
+            <span class="formula-step-name">1. 未休假加班費折算攤入均薪</span>
+            <span class="formula-step-math">(${fmtTWD(c.baseSalary)} ÷ 30 × ${c.unusedLeaveDays}天) ÷ ${c.leaveSpreadMonths}月 ＝ <strong>+${fmtTWD(res.leaveMonthlyAdd)}</strong></span>
+          </div>
+          <div class="formula-step">
+            <span class="formula-step-name">2. 計薪平均薪資合計</span>
+            <span class="formula-step-math">${fmtTWD(c.baseSalary)} ＋ ${fmtTWD(res.leaveMonthlyAdd)} ＝ <strong>${fmtTWD(res.effectiveAvgSalary)}</strong></span>
+          </div>
+          <div class="formula-step">
+            <span class="formula-step-name">3. 行員退休金基數給付</span>
+            <span class="formula-step-math">${fmtTWD(res.effectiveAvgSalary)} × ${res.units} 基數 ＝ <strong>${fmtTWD(res.bankPension)}</strong></span>
+          </div>
+          <div class="formula-step">
+            <span class="formula-step-name">4. 公保養老給付</span>
+            <span class="formula-step-math">${fmtTWD(c.gongbaoSalary)} × ${c.gongbaoMonths} 個月 ＝ <strong>${fmtTWD(res.gongbaoLump)}</strong></span>
+          </div>
+          <div class="formula-step">
+            <span class="formula-step-name">5. 綜合退休金總額</span>
+            <span class="formula-step-math">${fmtTWD(res.bankPension)} ＋ ${fmtTWD(res.gongbaoLump)} ＝ <strong>${fmtTWD(res.totalComp)}</strong></span>
+          </div>
+        `;
+      }
+
+      renderCompChart(res);
+    }
+
+    function renderCompChart(res) {
+      const container = document.getElementById('comp-svg-chart');
+      if (!container) return;
+
+      const total = Math.max(1, res.totalComp);
+      const wBase = (res.baseOnlyPension / total) * 100;
+      const wLeave = (res.leaveBonusTotal / total) * 100;
+      const wGb = (res.gongbaoLump / total) * 100;
+
+      const x1 = 20;
+      const barW = 560;
+      const seg1 = (wBase / 100) * barW;
+      const seg2 = (wLeave / 100) * barW;
+      const seg3 = (wGb / 100) * barW;
+
+      container.innerHTML = `
+        <svg viewBox="0 0 600 155" role="img" aria-label="綜合退休金組成比例條形圖">
+          <text x="20" y="24" fill="var(--on-surface-variant)" font-size="12" font-family="var(--font-body)">佔比結構總計：${fmtTWD(res.totalComp)}</text>
+          <rect x="${x1}" y="40" width="${seg1}" height="42" fill="var(--data-1)" rx="2" />
+          <rect x="${x1 + seg1}" y="40" width="${seg2}" height="42" fill="var(--data-3)" />
+          <rect x="${x1 + seg1 + seg2}" y="40" width="${seg3}" height="42" fill="var(--data-2)" rx="2" />
+          <rect x="${x1}" y="40" width="${barW}" height="42" fill="none" stroke="var(--outline-gold)" stroke-width="1" rx="2" />
+
+          <g font-size="12" font-family="var(--font-mono)">
+            <rect x="20" y="104" width="10" height="10" fill="var(--data-1)" rx="1" />
+            <text x="36" y="113" fill="var(--on-surface)">本薪基數 ${wBase.toFixed(1)}% (${fmtCompactTWD(res.baseOnlyPension)})</text>
+
+            <rect x="230" y="104" width="10" height="10" fill="var(--data-3)" rx="1" />
+            <text x="246" y="113" fill="var(--on-surface)">未休假折算 ${wLeave.toFixed(1)}% (${fmtCompactTWD(res.leaveBonusTotal)})</text>
+
+            <rect x="430" y="104" width="10" height="10" fill="var(--data-2)" rx="1" />
+            <text x="446" y="113" fill="var(--on-surface)">公保給付 ${wGb.toFixed(1)}% (${fmtCompactTWD(res.gongbaoLump)})</text>
+          </g>
+        </svg>
+      `;
+    }
+
+    function renderLaborPanel(res) {
+      const l = appState.labor;
+      setText('labor-emp-monthly', fmtTWD(res.mEmp));
+      setText('labor-per-monthly-hint', `每月自提 ${fmtTWD(res.mPer)}`);
+      setText('out-labor-total', fmtTWD(res.finalTotal));
+      setText('out-labor-rate-badge', `總提繳率 ${(6 + l.personalRate).toFixed(1)}%`);
+      setText('out-labor-payout-yr', String(l.payoutYears));
+      setText('out-labor-monthly', `${fmtTWD(res.monthlyAnnuity)} / 月`);
+      setText('out-labor-gain', `+${fmtTWD(res.totalGain)}`);
+      setText('out-labor-diff', `+${fmtTWD(res.personalDiff)}`);
+      setText('out-labor-taxsave', `${fmtTWD(res.annualTaxSave)} / 年`);
+
+      const stepsEl = document.getElementById('labor-breakdown-steps');
+      if (stepsEl) {
+        stepsEl.innerHTML = `
+          <div class="formula-step">
+            <span class="formula-step-name">1. 期初專戶已累積餘額</span>
+            <span class="formula-step-math"><strong>${fmtTWD(l.currentBalance)}</strong></span>
+          </div>
+          <div class="formula-step">
+            <span class="formula-step-name">2. 未來 ${l.yearsToRetire} 年雇主提繳本金（6%）</span>
+            <span class="formula-step-math">${fmtTWD(res.mEmp)} × ${l.yearsToRetire * 12} 月 ＝ <strong>${fmtTWD(res.principalEmp)}</strong></span>
+          </div>
+          <div class="formula-step">
+            <span class="formula-step-name">3. 未來 ${l.yearsToRetire} 年個人自提本金（${l.personalRate}%）</span>
+            <span class="formula-step-math">${fmtTWD(res.mPer)} × ${l.yearsToRetire * 12} 月 ＝ <strong>${fmtTWD(res.principalPer)}</strong></span>
+          </div>
+          <div class="formula-step">
+            <span class="formula-step-name">4. 預估複利投資總收益（年化 ${l.annualReturn}%）</span>
+            <span class="formula-step-math"><strong>+${fmtTWD(res.totalGain)}</strong></span>
+          </div>
+          <div class="formula-step">
+            <span class="formula-step-name">5. 僅雇主 6% 基準 vs 含自提總額</span>
+            <span class="formula-step-math">${fmtTWD(res.finalEmpOnly)} → <strong>${fmtTWD(res.finalTotal)}</strong></span>
+          </div>
+        `;
+      }
+
+      renderLaborChart(res);
+    }
+
+    function renderLaborChart(res) {
+      const container = document.getElementById('labor-svg-chart');
+      if (!container) return;
+
+      const data = res.series;
+      const W = 620, H = 260;
+      const padL = 62, padR = 24, padT = 22, padB = 34;
+      const plotW = W - padL - padR;
+      const plotH = H - padT - padB;
+      const maxVal = Math.max(100000, ...data.map(d => d.total)) * 1.08;
+      const maxYr = Math.max(1, data[data.length - 1].year);
+
+      function xOf(yr) { return padL + (yr / maxYr) * plotW; }
+      function yOf(val) { return padT + plotH - (val / maxVal) * plotH; }
+
+      const totalPath = data.map((d, i) => `${i === 0 ? 'M' : 'L'}${xOf(d.year).toFixed(1)},${yOf(d.total).toFixed(1)}`).join(' ');
+      const empPath = data.map((d, i) => `${i === 0 ? 'M' : 'L'}${xOf(d.year).toFixed(1)},${yOf(d.empOnly).toFixed(1)}`).join(' ');
+      const areaPath = `${totalPath} L${xOf(maxYr).toFixed(1)},${(padT + plotH).toFixed(1)} L${xOf(0).toFixed(1)},${(padT + plotH).toFixed(1)} Z`;
+
+      // Grid lines (4 ticks)
+      let gridHtml = '';
+      for (let i = 0; i <= 4; i++) {
+        const val = (maxVal / 4) * i;
+        const y = yOf(val);
+        gridHtml += `
+          <line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="var(--outline-variant)" stroke-dasharray="3 3" stroke-width="1" />
+          <text x="${padL - 8}" y="${(y + 4).toFixed(1)}" text-anchor="end" fill="var(--on-surface-variant)" font-size="11" font-family="var(--font-mono)">${fmtCompactTWD(val)}</text>
+        `;
+      }
+
+      // X axis ticks
+      let xTicksHtml = '';
+      const step = Math.max(1, Math.ceil(maxYr / 5));
+      for (let yr = 0; yr <= maxYr; yr += step) {
+        const x = xOf(yr);
+        xTicksHtml += `<text x="${x.toFixed(1)}" y="${H - 10}" text-anchor="middle" fill="var(--on-surface-variant)" font-size="11" font-family="var(--font-mono)">第${yr}年</text>`;
+      }
+
+      // Interactive hover nodes
+      let nodesHtml = '';
+      data.forEach(d => {
+        const cx = xOf(d.year).toFixed(1);
+        const cy = yOf(d.total).toFixed(1);
+        nodesHtml += `
+          <circle cx="${cx}" cy="${cy}" r="10" fill="transparent" style="cursor: pointer;"
+            onmouseover="showLaborReadout(${d.year}, ${d.total}, ${d.empOnly})"
+            onclick="showLaborReadout(${d.year}, ${d.total}, ${d.empOnly})" />
+          <circle cx="${cx}" cy="${cy}" r="3" fill="var(--data-1)" pointer-events="none" />
+        `;
+      });
+
+      container.innerHTML = `
+        <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="勞退新制逐年複利累積折線圖">
+          ${gridHtml}
+          <line x1="${padL}" y1="${padT + plotH}" x2="${W - padR}" y2="${padT + plotH}" stroke="var(--outline)" stroke-width="1" />
+          ${xTicksHtml}
+          <path d="${areaPath}" fill="var(--primary)" fill-opacity="0.08" />
+          <path d="${empPath}" fill="none" stroke="var(--data-context)" stroke-width="2" stroke-dasharray="5 4" />
+          <path d="${totalPath}" fill="none" stroke="var(--data-1)" stroke-width="2.5" />
+          ${nodesHtml}
+        </svg>
+      `;
+
+      const last = data[data.length - 1];
+      showLaborReadout(last.year, last.total, last.empOnly);
+    }
+
+    function showLaborReadout(yr, total, empOnly) {
+      const valEl = document.getElementById('labor-readout-val');
+      if (!valEl) return;
+      valEl.textContent = `第 ${yr} 年：總額 ${fmtTWD(total)}（僅雇主 ${fmtTWD(empOnly)}｜自提增益 +${fmtTWD(total - empOnly)}）`;
+    }
+
+    function renderGongbaoPanel(res) {
+      const g = appState.gongbao;
+      setText('out-gb-lump', fmtTWD(res.lumpSum));
+      setText('out-gb-months', `${res.lumpMonths} 個月`);
+      setText('out-gb-monthly', `${fmtTWD(res.monthlyAnnuity)} / 月`);
+      setText('out-gb-total-pct', `${res.totalPct}%`);
+      setText('out-gb-breakeven', `約 ${res.breakevenYears} 年`);
+
+      const stepsEl = document.getElementById('gb-breakdown-steps');
+      if (stepsEl) {
+        stepsEl.innerHTML = `
+          <div class="formula-step">
+            <span class="formula-step-name">1. 一次養老給付計算月數</span>
+            <span class="formula-step-math">min(36, ${g.insuredYears}年 × 1.2) ＝ <strong>${res.lumpMonths} 個月</strong></span>
+          </div>
+          <div class="formula-step">
+            <span class="formula-step-name">2. 公保一次養老給付總額</span>
+            <span class="formula-step-math">${fmtTWD(g.insuredSalary)} × ${res.lumpMonths} 個月 ＝ <strong>${fmtTWD(res.lumpSum)}</strong></span>
+          </div>
+          <div class="formula-step">
+            <span class="formula-step-name">3. 養老年金採計總給付率</span>
+            <span class="formula-step-math">min(35, ${g.insuredYears}年) × ${g.annuityRate.toFixed(2)}% ＝ <strong>${res.totalPct}%</strong></span>
+          </div>
+          <div class="formula-step">
+            <span class="formula-step-name">4. 養老年金預估月領 / 年領</span>
+            <span class="formula-step-math">${fmtTWD(res.monthlyAnnuity)}/月（年領 <strong>${fmtTWD(res.annualAnnuity)}</strong>）</span>
+          </div>
+          <div class="formula-step">
+            <span class="formula-step-name">5. 損益平衡（年金超越一次領）</span>
+            <span class="formula-step-math">約 <strong>${res.breakevenYears} 年</strong> 即可領回一次給付本金</span>
+          </div>
+        `;
+      }
+
+      renderGongbaoChart(res);
+    }
+
+    function renderGongbaoChart(res) {
+      const container = document.getElementById('gb-svg-chart');
+      if (!container) return;
+
+      const data = res.series;
+      const W = 620, H = 250;
+      const padL = 62, padR = 24, padT = 22, padB = 34;
+      const plotW = W - padL - padR;
+      const plotH = H - padT - padB;
+      const maxVal = Math.max(100000, ...data.map(d => Math.max(d.lump, d.annuityCum))) * 1.08;
+      const maxYr = Math.max(1, data[data.length - 1].year);
+
+      function xOf(yr) { return padL + (yr / maxYr) * plotW; }
+      function yOf(val) { return padT + plotH - (val / maxVal) * plotH; }
+
+      const lumpY = yOf(res.lumpSum).toFixed(1);
+      const annPath = data.map((d, i) => `${i === 0 ? 'M' : 'L'}${xOf(d.year).toFixed(1)},${yOf(d.annuityCum).toFixed(1)}`).join(' ');
+
+      let gridHtml = '';
+      for (let i = 0; i <= 4; i++) {
+        const val = (maxVal / 4) * i;
+        const y = yOf(val);
+        gridHtml += `
+          <line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="var(--outline-variant)" stroke-dasharray="3 3" stroke-width="1" />
+          <text x="${padL - 8}" y="${(y + 4).toFixed(1)}" text-anchor="end" fill="var(--on-surface-variant)" font-size="11" font-family="var(--font-mono)">${fmtCompactTWD(val)}</text>
+        `;
+      }
+
+      let xTicksHtml = '';
+      const step = Math.max(1, Math.ceil(maxYr / 5));
+      for (let yr = 0; yr <= maxYr; yr += step) {
+        const x = xOf(yr);
+        xTicksHtml += `<text x="${x.toFixed(1)}" y="${H - 10}" text-anchor="middle" fill="var(--on-surface-variant)" font-size="11" font-family="var(--font-mono)">第${yr}年</text>`;
+      }
+
+      // Breakeven marker if within horizon
+      let breakevenHtml = '';
+      if (res.breakevenYears > 0 && res.breakevenYears <= maxYr) {
+        const bx = xOf(res.breakevenYears).toFixed(1);
+        breakevenHtml = `
+          <line x1="${bx}" y1="${padT}" x2="${bx}" y2="${padT + plotH}" stroke="var(--secondary)" stroke-dasharray="4 3" stroke-width="1.5" />
+          <circle cx="${bx}" cy="${lumpY}" r="5" fill="var(--secondary)" stroke="var(--background)" stroke-width="1.5" />
+          <text x="${Number(bx) + 6}" y="${Number(lumpY) - 8}" fill="var(--secondary)" font-size="11" font-weight="600" font-family="var(--font-body)">回本點 ${res.breakevenYears}年</text>
+        `;
+      }
+
+      let nodesHtml = '';
+      data.forEach(d => {
+        const cx = xOf(d.year).toFixed(1);
+        const cy = yOf(d.annuityCum).toFixed(1);
+        nodesHtml += `
+          <circle cx="${cx}" cy="${cy}" r="9" fill="transparent" style="cursor: pointer;"
+            onmouseover="showGbReadout(${d.year}, ${d.lump}, ${d.annuityCum})"
+            onclick="showGbReadout(${d.year}, ${d.lump}, ${d.annuityCum})" />
+        `;
+      });
+
+      container.innerHTML = `
+        <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="公保一次給付與養老年金累積對照圖">
+          ${gridHtml}
+          <line x1="${padL}" y1="${padT + plotH}" x2="${W - padR}" y2="${padT + plotH}" stroke="var(--outline)" stroke-width="1" />
+          ${xTicksHtml}
+          <line x1="${padL}" y1="${lumpY}" x2="${W - padR}" y2="${lumpY}" stroke="var(--data-2)" stroke-width="2" stroke-dasharray="6 4" />
+          <path d="${annPath}" fill="none" stroke="var(--data-1)" stroke-width="2.5" />
+          ${breakevenHtml}
+          ${nodesHtml}
+        </svg>
+      `;
+
+      const last = data[data.length - 1];
+      showGbReadout(last.year, last.lump, last.annuityCum);
+    }
+
+    function showGbReadout(yr, lump, annCum) {
+      const valEl = document.getElementById('gb-readout-val');
+      if (!valEl) return;
+      const diff = annCum - lump;
+      const diffTxt = diff >= 0 ? `年金多領 +${fmtTWD(diff)}` : `一次領尚餘 ${fmtTWD(Math.abs(diff))}`;
+      valEl.textContent = `領取第 ${yr} 年：年金累積 ${fmtTWD(annCum)} vs 一次領 ${fmtTWD(lump)}（${diffTxt}）`;
+    }
+
+    function renderLedgerPanel(compRes, laborRes, gbRes) {
+      const grandTotal = compRes.totalComp + laborRes.finalTotal;
+      const totalMonthlyFlow = compRes.prefMonthly + laborRes.monthlyAnnuity;
+
+      setText('out-ledger-grand', fmtTWD(grandTotal));
+
+      const tbody = document.getElementById('ledger-tbody');
+      const tfoot = document.getElementById('ledger-tfoot');
+      if (!tbody || !tfoot) return;
+
+      tbody.innerHTML = `
+        <tr>
+          <td><strong>壹・鎖頭銀行綜合退休金</strong></td>
+          <td>均薪 ${fmtTWD(compRes.effectiveAvgSalary)} × ${compRes.units}基數 ＋ 公保 ${fmtTWD(appState.comp.gongbaoSalary)} × ${appState.comp.gongbaoMonths}月</td>
+          <td class="num"><strong>${fmtTWD(compRes.totalComp)}</strong></td>
+          <td class="num">${fmtTWD(compRes.prefMonthly)} / 月<br><span class="field-hint">（優存 ${appState.comp.prefRate}% 預估月息）</span></td>
+          <td>已包含未休假折算增額 ${fmtTWD(compRes.leaveBonusTotal)} 及公保養老給付</td>
+        </tr>
+        <tr>
+          <td><strong>貳・鎖頭銀行勞退新制</strong></td>
+          <td>月提繳工資 ${fmtTWD(appState.labor.monthlyWage)}（雇主6%＋自提${appState.labor.personalRate}%・${appState.labor.yearsToRetire}年・年化${appState.labor.annualReturn}%）</td>
+          <td class="num"><strong>${fmtTWD(laborRes.finalTotal)}</strong></td>
+          <td class="num">${fmtTWD(laborRes.monthlyAnnuity)} / 月<br><span class="field-hint">（依 ${appState.labor.payoutYears} 年期年金轉換）</span></td>
+          <td>預估複利淨收益 +${fmtTWD(laborRes.totalGain)}；年節稅約 ${fmtTWD(laborRes.annualTaxSave)}</td>
+        </tr>
+        <tr>
+          <td><strong>參・鎖頭銀行公保退休金（專項）</strong></td>
+          <td>保俸 ${fmtTWD(appState.gongbao.insuredSalary)} × ${gbRes.lumpMonths}個月（年資 ${appState.gongbao.insuredYears} 年）</td>
+          <td class="num">${fmtTWD(gbRes.lumpSum)}<br><span class="field-hint">（參考對照，不重複加總）</span></td>
+          <td class="num">${fmtTWD(gbRes.monthlyAnnuity)} / 月<br><span class="field-hint">（若改採年金 ${gbRes.totalPct}%）</span></td>
+          <td>採年金約 ${gbRes.breakevenYears} 年回本；一次領部分已納入模組壹</td>
+        </tr>
+      `;
+
+      tfoot.innerHTML = `
+        <tr>
+          <td colspan="2"><strong>合計預估退休總資產（模組壹 ＋ 模組貳，含優存與勞退月領參考現金流）</strong></td>
+          <td class="num" style="font-size: 1.125rem;">${fmtTWD(grandTotal)}</td>
+          <td class="num" style="font-size: 1.125rem;">${fmtTWD(totalMonthlyFlow)} / 月</td>
+          <td>雙軌並進穩定配置</td>
+        </tr>
+      `;
+    }
+
+    function setText(id, txt) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = txt;
+    }
+
+    // =========================================================================
+    // INTERACTION & NAVIGATION HANDLERS (HOISTED FUNCTIONS)
+    // =========================================================================
+    function switchModule(moduleId, shouldScroll) {
+      appState.activeModule = moduleId;
+
+      // Update tabs & panels
+      const modules = ['comp', 'labor', 'gongbao', 'ledger'];
+      modules.forEach(function (m) {
+        const tab = document.getElementById(`tab-${m}`);
+        const panel = document.getElementById(`panel-${m}`);
+        if (tab) tab.setAttribute('aria-selected', m === moduleId ? 'true' : 'false');
+        if (panel) panel.classList.toggle('is-active', m === moduleId);
+      });
+
+      // Update top portal cards
+      const cardModules = ['comp', 'labor', 'gongbao'];
+      cardModules.forEach(function (m) {
+        const card = document.getElementById(`portal-card-${m}`);
+        const tag = document.getElementById(`card-tag-${m}`);
+        const btn = card ? card.querySelector('button') : null;
+        const isActive = m === moduleId;
+        if (card) card.classList.toggle('is-active', isActive);
+        if (tag) tag.textContent = isActive ? '檢視中' : '點擊切換';
+        if (btn) {
+          btn.classList.toggle('btn-primary', isActive);
+          btn.classList.toggle('btn-secondary', !isActive);
+        }
+      });
+
+      if (shouldScroll) {
+        const ws = document.getElementById('workspace-section');
+        if (ws) ws.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      persistState(false);
+    }
+
+    // --- Sync & validation helpers ---
+    function setInputValue(id, val) {
+      const el = document.getElementById(id);
+      if (el) el.value = val;
+    }
+
+    function setInvalid(errId, numId, isInvalid) {
+      const errEl = document.getElementById(errId);
+      const numEl = document.getElementById(numId);
+      if (errEl) errEl.classList.toggle('is-visible', isInvalid);
+      if (numEl) numEl.classList.toggle('is-invalid', isInvalid);
+    }
+
+    // --- Module 1 Handlers ---
+    const COMP_BOUNDS = {
+      baseSalary: { min: 30000, max: 250000, rangeId: 'comp-base-salary-range', numId: 'comp-base-salary-num' },
+      seniorityYears: { min: 1, max: 45, rangeId: 'comp-seniority-range', numId: 'comp-seniority-num' },
+      unusedLeaveDays: { min: 0, max: 30, rangeId: 'comp-leave-days-range', numId: 'comp-leave-days-num' },
+      gongbaoSalary: { min: 20000, max: 150000, rangeId: 'comp-gongbao-sal-range', numId: 'comp-gongbao-sal-num' },
+      gongbaoMonths: { min: 1, max: 36, rangeId: 'comp-gongbao-months-range', numId: 'comp-gongbao-months-num' },
+      prefCap: { min: 0, max: 10000000, rangeId: null, numId: 'comp-pref-cap' },
+      prefRate: { min: 0, max: 20, rangeId: null, numId: 'comp-pref-rate' }
+    };
+
+    function onCompSlider(key, rawVal) {
+      const cfg = COMP_BOUNDS[key];
+      if (!cfg) return;
+      const val = Number(rawVal);
+      appState.comp[key] = val;
+      setInputValue(cfg.numId, val);
+      setInvalid(`err-comp-${key}`, cfg.numId, false);
+      renderAll();
+      persistState(true);
+    }
+
+    function onCompNumber(key, rawVal) {
+      const cfg = COMP_BOUNDS[key];
+      if (!cfg) return;
+      const val = Number(rawVal);
+      const invalid = rawVal === '' || Number.isNaN(val) || val < cfg.min || val > cfg.max;
+      setInvalid(`err-comp-${key}`, cfg.numId, invalid);
+      if (invalid) return;
+      appState.comp[key] = val;
+      if (cfg.rangeId) setInputValue(cfg.rangeId, val);
+      renderAll();
+      persistState(true);
+    }
+
+    function onCompSelect(key, rawVal) {
+      appState.comp[key] = Number(rawVal);
+      renderAll();
+      persistState(true);
+    }
+
+    function applyCompPreset(baseSal, yrs, leaveDays, gbSal, gbMonths) {
+      appState.comp.baseSalary = baseSal;
+      appState.comp.seniorityYears = yrs;
+      appState.comp.unusedLeaveDays = leaveDays;
+      appState.comp.gongbaoSalary = gbSal;
+      appState.comp.gongbaoMonths = gbMonths;
+      syncAllInputsFromState();
+      renderAll();
+      persistState(true);
+    }
+
+    function applyPrefPreset(cap, rate) {
+      appState.comp.prefCap = cap;
+      appState.comp.prefRate = rate;
+      setInputValue('comp-pref-cap', cap);
+      setInputValue('comp-pref-rate', rate);
+      renderAll();
+      persistState(true);
+    }
+
+    function syncGongbaoFromComp() {
+      appState.gongbao.insuredSalary = appState.comp.gongbaoSalary;
+      syncAllInputsFromState();
+      renderAll();
+      persistState(true);
+      switchModule('gongbao', false);
+    }
+
+    // --- Module 2 Handlers ---
+    const LABOR_BOUNDS = {
+      monthlyWage: { min: 15800, max: 150000, rangeId: 'labor-wage-range', numId: 'labor-wage-num' },
+      personalRate: { min: 0, max: 6, rangeId: 'labor-personal-range', numId: 'labor-personal-num' },
+      annualReturn: { min: 0.5, max: 9, rangeId: 'labor-return-range', numId: 'labor-return-num' },
+      yearsToRetire: { min: 1, max: 45, rangeId: 'labor-years-range', numId: 'labor-years-num' },
+      currentBalance: { min: 0, max: 10000000, rangeId: 'labor-current-range', numId: 'labor-current-num' }
+    };
+
+    function onLaborSlider(key, rawVal) {
+      const cfg = LABOR_BOUNDS[key];
+      if (!cfg) return;
+      const val = Number(rawVal);
+      appState.labor[key] = val;
+      setInputValue(cfg.numId, val);
+      setInvalid(`err-labor-${key}`, cfg.numId, false);
+      renderAll();
+      persistState(true);
+    }
+
+    function onLaborNumber(key, rawVal) {
+      const cfg = LABOR_BOUNDS[key];
+      if (!cfg) return;
+      const val = Number(rawVal);
+      const invalid = rawVal === '' || Number.isNaN(val) || val < cfg.min || val > cfg.max;
+      setInvalid(`err-labor-${key}`, cfg.numId, invalid);
+      if (invalid) return;
+      appState.labor[key] = val;
+      if (cfg.rangeId) setInputValue(cfg.rangeId, clamp(val, cfg.min, Number(document.getElementById(cfg.rangeId)?.max || cfg.max)));
+      renderAll();
+      persistState(true);
+    }
+
+    function onLaborSelect(key, rawVal) {
+      appState.labor[key] = Number(rawVal);
+      renderAll();
+      persistState(true);
+    }
+
+    function applyLaborPreset(personalRate, annualReturn) {
+      appState.labor.personalRate = personalRate;
+      appState.labor.annualReturn = annualReturn;
+      syncAllInputsFromState();
+      renderAll();
+      persistState(true);
+    }
+
+    // --- Module 3 Handlers ---
+    const GB_BOUNDS = {
+      insuredSalary: { min: 20000, max: 150000, rangeId: 'gb-salary-range', numId: 'gb-salary-num' },
+      insuredYears: { min: 1, max: 45, rangeId: 'gb-years-range', numId: 'gb-years-num' },
+      annuityRate: { min: 0.75, max: 1.30, rangeId: 'gb-annuity-range', numId: 'gb-annuity-num' }
+    };
+
+    function onGbSlider(key, rawVal) {
+      const cfg = GB_BOUNDS[key];
+      if (!cfg) return;
+      const val = Number(rawVal);
+      appState.gongbao[key] = val;
+      setInputValue(cfg.numId, val);
+      setInvalid(`err-gb-${key}`, cfg.numId, false);
+      renderAll();
+      persistState(true);
+    }
+
+    function onGbNumber(key, rawVal) {
+      const cfg = GB_BOUNDS[key];
+      if (!cfg) return;
+      const val = Number(rawVal);
+      const invalid = rawVal === '' || Number.isNaN(val) || val < cfg.min || val > cfg.max;
+      setInvalid(`err-gb-${key}`, cfg.numId, invalid);
+      if (invalid) return;
+      appState.gongbao[key] = val;
+      if (cfg.rangeId) setInputValue(cfg.rangeId, val);
+      renderAll();
+      persistState(true);
+    }
+
+    function onGbSelect(key, rawVal) {
+      appState.gongbao[key] = Number(rawVal);
+      renderAll();
+      persistState(true);
+    }
+
+    function applyGbPreset(sal, yrs) {
+      appState.gongbao.insuredSalary = sal;
+      appState.gongbao.insuredYears = yrs;
+      syncAllInputsFromState();
+      renderAll();
+      persistState(true);
+    }
+
+    function syncCompFromGongbao() {
+      appState.comp.gongbaoSalary = appState.gongbao.insuredSalary;
+      syncAllInputsFromState();
+      renderAll();
+      persistState(true);
+      switchModule('comp', false);
+    }
+
+    function syncAllInputsFromState() {
+      // Comp
+      setInputValue('comp-base-salary-range', appState.comp.baseSalary);
+      setInputValue('comp-base-salary-num', appState.comp.baseSalary);
+      setInputValue('comp-seniority-range', appState.comp.seniorityYears);
+      setInputValue('comp-seniority-num', appState.comp.seniorityYears);
+      setInputValue('comp-leave-days-range', appState.comp.unusedLeaveDays);
+      setInputValue('comp-leave-days-num', appState.comp.unusedLeaveDays);
+      setInputValue('comp-spread-months', String(appState.comp.leaveSpreadMonths));
+      setInputValue('comp-gongbao-sal-range', appState.comp.gongbaoSalary);
+      setInputValue('comp-gongbao-sal-num', appState.comp.gongbaoSalary);
+      setInputValue('comp-gongbao-months-range', appState.comp.gongbaoMonths);
+      setInputValue('comp-gongbao-months-num', appState.comp.gongbaoMonths);
+      setInputValue('comp-pref-cap', appState.comp.prefCap);
+      setInputValue('comp-pref-rate', appState.comp.prefRate);
+
+      // Labor
+      setInputValue('labor-wage-range', appState.labor.monthlyWage);
+      setInputValue('labor-wage-num', appState.labor.monthlyWage);
+      setInputValue('labor-personal-range', appState.labor.personalRate);
+      setInputValue('labor-personal-num', appState.labor.personalRate);
+      setInputValue('labor-return-range', appState.labor.annualReturn);
+      setInputValue('labor-return-num', appState.labor.annualReturn);
+      setInputValue('labor-years-range', appState.labor.yearsToRetire);
+      setInputValue('labor-years-num', appState.labor.yearsToRetire);
+      setInputValue('labor-current-range', Math.min(5000000, appState.labor.currentBalance));
+      setInputValue('labor-current-num', appState.labor.currentBalance);
+      setInputValue('labor-payout-years', String(appState.labor.payoutYears));
+      setInputValue('labor-tax-bracket', String(appState.labor.taxBracket));
+
+      // Gongbao
+      setInputValue('gb-salary-range', appState.gongbao.insuredSalary);
+      setInputValue('gb-salary-num', appState.gongbao.insuredSalary);
+      setInputValue('gb-years-range', appState.gongbao.insuredYears);
+      setInputValue('gb-years-num', appState.gongbao.insuredYears);
+      setInputValue('gb-annuity-range', appState.gongbao.annuityRate);
+      setInputValue('gb-annuity-num', appState.gongbao.annuityRate);
+      setInputValue('gb-life-years', String(appState.gongbao.compareHorizon));
+    }
+
+    // --- Two-step inline Reset (No confirm()) ---
+    function handleResetAll(btn) {
+      if (btn.dataset.armed !== 'true') {
+        btn.dataset.armed = 'true';
+        btn.textContent = '再次點擊確認重設';
+        setTimeout(function () {
+          if (btn.dataset.armed === 'true') {
+            btn.dataset.armed = 'false';
+            btn.textContent = '重設預設參數';
+          }
+        }, 3500);
+        return;
+      }
+      btn.dataset.armed = 'false';
+      btn.textContent = '重設預設參數';
+      appState = cloneState(DEFAULT_STATE);
+      syncAllInputsFromState();
+      switchModule('comp', false);
+      renderAll();
+      persistState(true);
+    }
+
+    // --- CSV Export ---
+    function exportSummaryCsv() {
+      const compRes = computeComp();
+      const laborRes = computeLabor();
+      const gbRes = computeGongbao();
+      const grandTotal = compRes.totalComp + laborRes.finalTotal;
+
+      const rows = [
+        [`鎖頭銀行退休金試算中心 — 綜合試算表`, ``, ``, ``],
+        [`試算模組`, `關鍵參數說明`, `一次領 / 專戶累積 (NT$)`, `預估每月現金流 (NT$)`],
+        [`壹・鎖頭銀行綜合退休金試算`, `計薪均薪 ${compRes.effectiveAvgSalary} × ${compRes.units}基數 ＋ 公保保俸 ${appState.comp.gongbaoSalary} × ${appState.comp.gongbaoMonths}月`, String(compRes.totalComp), String(compRes.prefMonthly)],
+        [`貳・鎖頭銀行勞退新制試算`, `月工資 ${appState.labor.monthlyWage} / 雇主6% ＋ 自提${appState.labor.personalRate}% / ${appState.labor.yearsToRetire}年 / 年化${appState.labor.annualReturn}%`, String(laborRes.finalTotal), String(laborRes.monthlyAnnuity)],
+        [`參・鎖頭銀行公保退休金試算`, `保俸 ${appState.gongbao.insuredSalary} / 年資 ${appState.gongbao.insuredYears}年 (${gbRes.lumpMonths}個月)`, String(gbRes.lumpSum), String(gbRes.monthlyAnnuity)],
+        [`合計雙軌退休總資產（壹＋貳）`, `模組參公保給付已併入模組壹，不重複計列`, String(grandTotal), String(compRes.prefMonthly + laborRes.monthlyAnnuity)]
+      ];
+
+      const csvContent = '\uFEFF' + rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+
+      if (window.notebookAppApi && typeof window.notebookAppApi.triggerFileDownload === 'function') {
+        window.notebookAppApi.triggerFileDownload({
+          content: csvContent,
+          contentType: 'text/csv',
+          encoding: 'UTF-8',
+          filename: '鎖頭銀行退休金試算總表.csv'
+        });
+      } else {
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = '鎖頭銀行退休金試算總表.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    // =========================================================================
+    // BOOTSTRAP
+    // =========================================================================
+    document.addEventListener('DOMContentLoaded', async function () {
+      await loadPersistedState();
+      syncAllInputsFromState();
+      switchModule(appState.activeModule || 'comp', false);
+      renderAll();
+
+      if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === 'function') {
+        window.notebookAppApi.notifyAppReady();
+      }
+    });
+  </script>
+</body>
+</html>

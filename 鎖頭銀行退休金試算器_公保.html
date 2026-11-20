@@ -1,0 +1,2797 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="tool">
+  <meta name="design-style" content="kiln">
+  <title>鎖頭銀行公保退休金試算器｜純公保養老給付精算</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@500;600;700&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+
+      /* 1. Kiln base adapted with King Sejong Royal Hanji palette */
+      --background: #F6F1E7;               /* 溫潤米白象牙韓式宣紙 */
+      --surface-container-low: #FBF8F1;    /* 亮宣紙面：主試算卡與面板 */
+      --surface-container: #EDE5D5;        /* 古卷次層紙色：切換底槽與輔助區 */
+      --surface-container-high: #E3D8C3;   /* 深宣紙色：表頭與懸停列 */
+
+      /* 水墨深黑 (Calligraphy Ink) */
+      --on-surface: #1A1918;               /* 濃墨：主標題與關鍵數值 (15.3:1 on Hanji) */
+      --on-surface-variant: #544E46;       /* 淡墨褐：說明文字與次級標籤 (7.1:1 on Hanji) */
+
+      /* 邊線與御用古金 (Royal Gold Rules) */
+      --outline: #B88B36;                  /* 御用古金：邊框、軸線、雙層裝飾線 */
+      --outline-variant: #D6CCB9;          /* 宣紙細紋線：隔線與網格線 */
+      --ink-outline: #1A1918;              /* 水墨主結構邊線 */
+
+      /* 世宗宮廷御色 (Royal Court Accents) */
+      --primary: #1F3A5F;                  /* 古典黛藍：頁首帶、主按鈕、焦點數據線 (10.1:1) */
+      --on-primary: #FBF8F1;               /* 黛藍上象牙宣紙字 (10.8:1) */
+      --primary-container: #E4EAF1;        /* 淡青瓷黛藍底 */
+      --on-primary-container: #1F3A5F;     /* 深黛藍文字 */
+
+      --secondary: #2D5E4A;                /* 青瓷松綠：年資達標與正向參考 (6.6:1) */
+      --secondary-container: #E5EFEA;      /* 淡青瓷底 */
+
+      --tertiary: #9E2A2B;                 /* 宮廷朱紅：篆刻印章、封頂標記、焦點數據 (6.1:1) */
+      --tertiary-hover: #7D1E1F;           /* 深朱紅 */
+      --tertiary-container: #F7E8E6;       /* 淡朱紗底 */
+
+      --gold-text: #7A5912;                /* 暗古金文字：淺底可讀金色文字 (5.3:1) */
+      --gold-on-indigo: #E6C36E;           /* 黛藍底上的御用古金文字與線條 (7.4:1) */
+      --gold-wash: #F4ECD8;                /* 淡金宣底 */
+
+      --error: #9E2A2B;
+      --on-error: #FBF8F1;
+
+      /* Data series */
+      --data-1: #1F3A5F;                   /* 古典黛藍 */
+      --data-2: #9E2A2B;                   /* 宮廷朱紅 */
+      --data-3: #7A5912;                   /* 御用古金 */
+      --data-4: #2D5E4A;                   /* 青瓷松綠 */
+      --data-context: #C9BFA9;             /* 宣紙網格基準線 */
+
+      /* Fonts */
+      --font-headline: 'Noto Serif TC', 'Shippori Mincho', serif;
+      --font-body: 'Noto Sans TC', sans-serif;
+      --font-label: 'Geist Mono', 'Noto Sans TC', monospace;
+
+      /* Shape */
+      --rounded: 0.125rem;
+      --rounded-lg: 0.25rem;
+      --rounded-full: 0.125rem;
+
+      /* Style effects */
+      --rule-indigo-left: 3px solid var(--primary);
+      --rule-crimson-left: 3px solid var(--tertiary);
+      --rule-gold: 2px solid var(--outline);
+      --rule-hanji: 1px solid var(--outline-variant);
+      --rule-ink: 1px solid var(--ink-outline);
+      --shadow-paper: 0 2px 10px color-mix(in srgb, var(--on-surface) 6%, transparent);
+
+      /* 3. Shared Foundation Tokens */
+      --positive: #2D5E4A;
+      --warning: #8C5811;
+      --focus: #1F3A5F;
+
+      /* Type Scale (Focused Tool) */
+      --display-size: clamp(1.75rem, 1.35rem + 1.3vw, 2.35rem);
+      --headline-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+      --subhead-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+      --body-size: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
+      --label-size: 0.75rem;
+
+      /* Spacing Scale (4pt base) */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+
+      /* Motion */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+    }
+
+    /* Base reset */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      overflow-x: clip;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.6;
+      /* Subtle Hanji mulberry fiber texture using pure CSS token gradients */
+      background-image:
+        radial-gradient(circle at 18% 24%, color-mix(in srgb, var(--outline) 6%, transparent) 0%, transparent 48%),
+        radial-gradient(circle at 82% 72%, color-mix(in srgb, var(--primary) 4%, transparent) 0%, transparent 52%),
+        repeating-linear-gradient(
+          0deg,
+          transparent 0,
+          transparent 27px,
+          color-mix(in srgb, var(--on-surface) 1.6%, transparent) 27px,
+          color-mix(in srgb, var(--on-surface) 1.6%, transparent) 28px
+        );
+    }
+
+    header { position: static !important; }
+
+    button, input, select, textarea {
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+    }
+
+    :focus-visible {
+      outline: 2.5px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .tabular-nums {
+      font-variant-numeric: tabular-nums lining-nums;
+    }
+
+    /* Royal Indigo Header Band */
+    .royal-masthead {
+      background-color: var(--primary);
+      color: var(--on-primary);
+      border-bottom: 3px solid var(--outline);
+      box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--gold-on-indigo) 45%, transparent);
+      padding: var(--space-lg) var(--space-lg) var(--space-xl);
+    }
+
+    .masthead-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--space-lg);
+      flex-wrap: wrap;
+    }
+
+    .masthead-text {
+      flex: 1 1 540px;
+      min-width: 0;
+    }
+
+    .masthead-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 500;
+      color: var(--gold-on-indigo);
+      letter-spacing: 0.04em;
+      margin-bottom: var(--space-sm);
+    }
+
+    .masthead-kicker::before {
+      content: "";
+      display: inline-block;
+      width: 18px;
+      height: 1px;
+      background-color: var(--gold-on-indigo);
+    }
+
+    .masthead-title {
+      margin: 0;
+      font-family: var(--font-headline);
+      font-size: var(--display-size);
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--on-primary);
+      letter-spacing: 0.01em;
+    }
+
+    .masthead-subtitle {
+      margin: var(--space-sm) 0 0;
+      max-width: 62ch;
+      color: color-mix(in srgb, var(--on-primary) 86%, var(--primary));
+      font-size: var(--body-size);
+      line-height: 1.65;
+    }
+
+    .masthead-aside {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-md);
+      flex-shrink: 0;
+    }
+
+    .masthead-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: var(--space-sm);
+    }
+
+    /* Vertical Cinnabar Seal Stamp (Hanko / Royal Seal) */
+    .seal-stamp {
+      border: 1.5px solid var(--gold-on-indigo);
+      background-color: var(--tertiary);
+      color: var(--on-primary);
+      font-family: var(--font-headline);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      padding: 0.5rem 0.4375rem;
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      border-radius: var(--rounded);
+      box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--on-primary) 18%, transparent);
+      user-select: none;
+      line-height: 1.2;
+    }
+
+    /* Page Grid */
+    .page-grid {
+      display: grid;
+      gap: var(--space-lg);
+      padding: var(--space-lg);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .page-grid * { min-width: 0; }
+
+    /* Presets Bar */
+    .preset-strip {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+      padding: var(--space-md) var(--space-lg);
+      background-color: var(--surface-container-low);
+      border: var(--rule-hanji);
+      border-top: var(--rule-gold);
+      border-radius: var(--rounded);
+      box-shadow: var(--shadow-paper);
+    }
+
+    .preset-label-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .preset-title {
+      font-family: var(--font-headline);
+      font-size: var(--subhead-size);
+      font-weight: 600;
+      color: var(--on-surface);
+    }
+
+    .preset-desc {
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+    }
+
+    .preset-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      min-height: 44px;
+      padding: 0.5rem 0.95rem;
+      border-radius: var(--rounded);
+      border: 1px solid transparent;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-out),
+                  color var(--dur-micro) var(--ease-out),
+                  box-shadow var(--dur-micro) var(--ease-out);
+      white-space: nowrap;
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: var(--on-primary);
+      border-color: var(--primary);
+    }
+    .btn-primary:hover {
+      background-color: color-mix(in srgb, var(--primary) 86%, var(--on-surface));
+    }
+
+    .btn-crimson {
+      background-color: var(--tertiary);
+      color: var(--on-primary);
+      border-color: var(--tertiary);
+    }
+    .btn-crimson:hover {
+      background-color: var(--tertiary-hover);
+    }
+
+    .btn-secondary {
+      background-color: var(--surface-container-low);
+      color: var(--primary);
+      border-color: var(--outline);
+    }
+    .btn-secondary:hover {
+      background-color: var(--primary-container);
+    }
+
+    .btn-ghost-light {
+      background-color: transparent;
+      color: var(--on-primary);
+      border-color: color-mix(in srgb, var(--gold-on-indigo) 60%, transparent);
+      min-height: 44px;
+      padding: 0.4rem 0.85rem;
+      font-size: 0.8125rem;
+    }
+    .btn-ghost-light:hover {
+      background-color: color-mix(in srgb, var(--on-primary) 12%, transparent);
+    }
+
+    .btn-preset {
+      background-color: var(--background);
+      color: var(--on-surface);
+      border-color: var(--outline-variant);
+      font-size: 0.8125rem;
+      padding: 0.45rem 0.85rem;
+    }
+    .btn-preset:hover {
+      background-color: var(--surface-container);
+      border-color: var(--outline);
+    }
+    .btn-preset.is-active {
+      background-color: var(--primary-container);
+      color: var(--primary);
+      border-color: var(--primary);
+      box-shadow: inset 0 0 0 1px var(--primary);
+      font-weight: 600;
+    }
+
+    /* Main Calculator Split Layout */
+    .calculator-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.18fr);
+      gap: var(--space-lg);
+      align-items: start;
+    }
+
+    /* Hanji Cards */
+    .hanji-panel {
+      background-color: var(--surface-container-low);
+      border: var(--rule-hanji);
+      border-radius: var(--rounded);
+      padding: var(--space-lg);
+      box-shadow: var(--shadow-paper);
+      position: relative;
+    }
+
+    .hanji-panel--indigo {
+      border-left: var(--rule-indigo-left);
+    }
+
+    .hanji-panel--crimson {
+      border-top: var(--rule-gold);
+      border-left: var(--rule-crimson-left);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      padding-bottom: var(--space-sm);
+      margin-bottom: var(--space-md);
+      border-bottom: var(--rule-hanji);
+    }
+
+    .panel-title {
+      margin: 0;
+      font-family: var(--font-headline);
+      font-size: var(--headline-size);
+      font-weight: 600;
+      color: var(--on-surface);
+    }
+
+    .panel-tag {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--gold-text);
+      font-weight: 600;
+      background-color: var(--gold-wash);
+      border: 1px solid color-mix(in srgb, var(--outline) 50%, transparent);
+      padding: 0.15rem 0.5rem;
+      border-radius: var(--rounded);
+      white-space: nowrap;
+    }
+
+    /* Form Controls */
+    .control-section {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .control-divider {
+      height: 1px;
+      background-color: var(--outline-variant);
+      margin: var(--space-xs) 0;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .field-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--space-sm);
+    }
+
+    .field-label {
+      font-weight: 600;
+      font-size: 0.9375rem;
+      color: var(--on-surface);
+    }
+
+    .field-hint {
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+    }
+
+    /* Segmented Toggle */
+    .segmented-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 4px;
+      padding: 4px;
+      background-color: var(--surface-container);
+      border: var(--rule-hanji);
+      border-radius: var(--rounded);
+    }
+
+    .seg-btn {
+      min-height: 44px;
+      padding: 0.45rem 0.65rem;
+      border: none;
+      background: transparent;
+      color: var(--on-surface-variant);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      border-radius: var(--rounded);
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-out),
+                  color var(--dur-micro) var(--ease-out);
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .seg-btn:hover {
+      color: var(--on-surface);
+      background-color: color-mix(in srgb, var(--surface-container-low) 60%, transparent);
+    }
+
+    .seg-btn.is-active {
+      background-color: var(--primary);
+      color: var(--on-primary);
+      font-weight: 600;
+    }
+
+    /* Input + Unit Wrapper */
+    .input-with-unit {
+      display: flex;
+      align-items: stretch;
+      background-color: var(--background);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      transition: box-shadow var(--dur-micro) var(--ease-out),
+                  background-color var(--dur-micro) var(--ease-out);
+    }
+
+    .input-with-unit:focus-within {
+      background-color: var(--surface-container-low);
+      box-shadow: 0 0 0 2px var(--primary);
+    }
+
+    .input-with-unit input[type="number"] {
+      flex: 1 1 auto;
+      width: 100%;
+      min-height: 44px;
+      padding: 0.5rem 0.75rem;
+      border: none;
+      background: transparent;
+      font-family: var(--font-label);
+      font-size: 1.0625rem;
+      font-weight: 600;
+      color: var(--on-surface);
+      font-variant-numeric: tabular-nums;
+      outline: none;
+    }
+
+    .input-unit {
+      display: inline-flex;
+      align-items: center;
+      padding: 0 0.75rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--on-surface-variant);
+      background-color: var(--surface-container);
+      border-left: var(--rule-hanji);
+      white-space: nowrap;
+    }
+
+    /* Range Slider */
+    input[type="range"].hanji-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: var(--surface-container-high);
+      border-radius: var(--rounded);
+      outline: none;
+      margin: var(--space-sm) 0;
+      cursor: pointer;
+    }
+
+    input[type="range"].hanji-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: var(--rounded);
+      background: var(--primary);
+      border: 2px solid var(--gold-on-indigo);
+      cursor: pointer;
+      box-shadow: 0 1px 4px color-mix(in srgb, var(--on-surface) 25%, transparent);
+    }
+
+    input[type="range"].hanji-slider::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: var(--rounded);
+      background: var(--primary);
+      border: 2px solid var(--gold-on-indigo);
+      cursor: pointer;
+    }
+
+    .slider-ticks {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-label);
+      font-size: 0.75rem;
+      color: var(--on-surface-variant);
+    }
+
+    .dual-tenure-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--space-md);
+    }
+
+    .computed-preview-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      padding: 0.65rem 0.85rem;
+      background-color: var(--primary-container);
+      border-left: 3px solid var(--primary);
+      border-radius: var(--rounded);
+      font-size: 0.875rem;
+    }
+
+    .computed-preview-val {
+      font-family: var(--font-label);
+      font-weight: 600;
+      color: var(--primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Advanced Disclosure */
+    .advanced-box {
+      border: var(--rule-hanji);
+      border-radius: var(--rounded);
+      background-color: var(--background);
+    }
+
+    .advanced-box summary {
+      padding: 0.7rem 0.9rem;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--primary);
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      list-style: none;
+    }
+
+    .advanced-box summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .advanced-inner {
+      padding: 0 0.9rem 0.9rem;
+      border-top: var(--rule-hanji);
+      padding-top: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    /* Validation Notice */
+    .inline-notice {
+      padding: 0.6rem 0.85rem;
+      border-radius: var(--rounded);
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      display: none;
+    }
+
+    .inline-notice.is-visible {
+      display: block;
+    }
+
+    .inline-notice--warning {
+      background-color: var(--gold-wash);
+      border-left: 3px solid var(--warning);
+      color: var(--on-surface);
+    }
+
+    .inline-notice--info {
+      background-color: var(--secondary-container);
+      border-left: 3px solid var(--secondary);
+      color: var(--on-surface);
+    }
+
+    /* Output Hero Card */
+    .outputs-stack {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+    }
+
+    .hero-result-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+    }
+
+    .result-eyebrow {
+      font-size: var(--label-size);
+      font-weight: 600;
+      color: var(--on-surface-variant);
+      margin-bottom: var(--space-xs);
+    }
+
+    .result-main-figure {
+      margin: 0;
+      font-family: var(--font-headline);
+      font-size: clamp(2.1rem, 1.5rem + 2vw, 3rem);
+      font-weight: 700;
+      line-height: 1.15;
+      color: var(--tertiary);
+      font-variant-numeric: tabular-nums lining-nums;
+      letter-spacing: -0.01em;
+    }
+
+    .result-sub-figure {
+      margin-top: var(--space-xs);
+      font-size: 0.9375rem;
+      color: var(--on-surface-variant);
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      align-items: center;
+    }
+
+    .status-seal {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0.35rem 0.7rem;
+      border-radius: var(--rounded);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      border: 1px solid currentColor;
+      white-space: nowrap;
+    }
+
+    .status-seal--capped {
+      color: var(--tertiary);
+      background-color: var(--tertiary-container);
+    }
+
+    .status-seal--growing {
+      color: var(--secondary);
+      background-color: var(--secondary-container);
+    }
+
+    .status-seal--short {
+      color: var(--gold-text);
+      background-color: var(--gold-wash);
+    }
+
+    /* 3 Metric Subcards */
+    .metrics-trio {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+    }
+
+    .metric-leaf {
+      background-color: var(--background);
+      border: var(--rule-hanji);
+      border-left: 3px solid var(--outline);
+      border-radius: var(--rounded);
+      padding: 0.85rem 1rem;
+    }
+
+    .metric-leaf-label {
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+      margin-bottom: 4px;
+    }
+
+    .metric-leaf-value {
+      font-family: var(--font-headline);
+      font-size: 1.375rem;
+      font-weight: 700;
+      color: var(--on-surface);
+      font-variant-numeric: tabular-nums;
+      line-height: 1.25;
+    }
+
+    .metric-leaf-note {
+      margin-top: 4px;
+      font-size: 0.75rem;
+      color: var(--gold-text);
+      font-weight: 500;
+    }
+
+    /* Action Row on Output */
+    .result-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-sm);
+      margin-top: var(--space-lg);
+      padding-top: var(--space-md);
+      border-top: var(--rule-hanji);
+    }
+
+    .action-feedback {
+      font-size: 0.8125rem;
+      color: var(--secondary);
+      font-weight: 600;
+      margin-left: auto;
+    }
+
+    /* Formula Breakdown Card */
+    .formula-equation-box {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+      padding: var(--space-md);
+      background-color: var(--background);
+      border: 1px dashed var(--outline);
+      border-radius: var(--rounded);
+      text-align: center;
+    }
+
+    .eq-term {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.4rem 0.75rem;
+      background-color: var(--surface-container-low);
+      border: var(--rule-hanji);
+      border-radius: var(--rounded);
+      min-width: 120px;
+    }
+
+    .eq-term-label {
+      font-size: 0.75rem;
+      color: var(--on-surface-variant);
+    }
+
+    .eq-term-val {
+      font-family: var(--font-label);
+      font-size: 1.0625rem;
+      font-weight: 600;
+      color: var(--primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .eq-term--result {
+      border-color: var(--tertiary);
+      background-color: var(--tertiary-container);
+    }
+
+    .eq-term--result .eq-term-val {
+      color: var(--tertiary);
+    }
+
+    .eq-op {
+      font-family: var(--font-headline);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--gold-text);
+    }
+
+    /* Stacked Segment Bar */
+    .segment-bar-wrap {
+      margin-top: var(--space-md);
+    }
+
+    .segment-bar {
+      display: flex;
+      height: 14px;
+      width: 100%;
+      background-color: var(--surface-container);
+      border-radius: var(--rounded);
+      overflow: hidden;
+      border: var(--rule-hanji);
+    }
+
+    .seg-fill {
+      height: 100%;
+      transition: width var(--dur-short) var(--ease-out);
+    }
+
+    .seg-fill--t1 { background-color: var(--primary); }
+    .seg-fill--t2 { background-color: var(--secondary); }
+    .seg-fill--t3 { background-color: var(--outline); }
+    .seg-fill--t4 { background-color: var(--tertiary); }
+
+    /* Breakdown Table */
+    .hanji-table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      margin-top: var(--space-md);
+    }
+
+    table.hanji-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    .hanji-table th {
+      text-align: left;
+      padding: 0.65rem 0.75rem;
+      font-weight: 600;
+      font-size: 0.8125rem;
+      color: var(--on-surface);
+      background-color: var(--surface-container);
+      border-top: 1.5px solid var(--ink-outline);
+      border-bottom: 1.5px solid var(--ink-outline);
+      white-space: nowrap;
+    }
+
+    .hanji-table td {
+      padding: 0.65rem 0.75rem;
+      border-bottom: var(--rule-hanji);
+      color: var(--on-surface);
+      vertical-align: middle;
+    }
+
+    .hanji-table th.num,
+    .hanji-table td.num {
+      text-align: right;
+      font-family: var(--font-label);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .hanji-table tbody tr:hover {
+      background-color: color-mix(in srgb, var(--surface-container) 45%, transparent);
+    }
+
+    .hanji-table tbody tr.is-selected-row {
+      background-color: var(--primary-container);
+      font-weight: 600;
+    }
+
+    .hanji-table tfoot td {
+      border-top: var(--rule-gold);
+      border-bottom: none;
+      font-weight: 700;
+      background-color: var(--background);
+    }
+
+    /* Chart Panel */
+    .chart-container {
+      width: 100%;
+      min-height: 310px;
+      position: relative;
+      margin-top: var(--space-sm);
+    }
+
+    .chart-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      overflow: visible;
+    }
+
+    .chart-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      font-size: 0.8125rem;
+      color: var(--on-surface-variant);
+      margin-top: var(--space-sm);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-swatch {
+      width: 14px;
+      height: 3px;
+      display: inline-block;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .chart-tooltip {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: 0.6rem 0.85rem;
+      background-color: var(--surface-container);
+      border-left: 3px solid var(--tertiary);
+      border-radius: var(--rounded);
+      font-size: 0.875rem;
+      margin-top: var(--space-sm);
+    }
+
+    /* Reference Table Filter Bar */
+    .table-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-sm);
+    }
+
+    .filter-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+    }
+
+    .filter-btn {
+      min-height: 44px;
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--rounded);
+      border: 1px solid var(--outline-variant);
+      background-color: var(--background);
+      color: var(--on-surface-variant);
+      font-size: 0.8125rem;
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-out),
+                  color var(--dur-micro) var(--ease-out);
+    }
+
+    .filter-btn:hover {
+      background-color: var(--surface-container);
+      color: var(--on-surface);
+    }
+
+    .filter-btn.is-active {
+      background-color: var(--primary);
+      color: var(--on-primary);
+      border-color: var(--primary);
+      font-weight: 600;
+    }
+
+    .btn-apply-row {
+      min-height: 36px;
+      padding: 0.25rem 0.65rem;
+      font-size: 0.75rem;
+      border-radius: var(--rounded);
+      border: 1px solid var(--primary);
+      background-color: var(--surface-container-low);
+      color: var(--primary);
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn-apply-row:hover {
+      background-color: var(--primary);
+      color: var(--on-primary);
+    }
+
+    /* Bottom Two-Column Reference & Saved Comparison */
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+      gap: var(--space-lg);
+      align-items: start;
+    }
+
+    .saved-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .saved-card {
+      padding: 0.85rem 1rem;
+      background-color: var(--background);
+      border: var(--rule-hanji);
+      border-left: 3px solid var(--outline);
+      border-radius: var(--rounded);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .saved-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--space-sm);
+    }
+
+    .saved-card-title {
+      font-weight: 600;
+      font-size: 0.9375rem;
+      color: var(--on-surface);
+    }
+
+    .saved-card-amount {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: 1.1875rem;
+      color: var(--tertiary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .saved-card-meta {
+      font-size: 0.8125rem;
+      color: var(--on-surface-variant);
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+
+    .saved-card-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-xs);
+      margin-top: 2px;
+    }
+
+    .btn-mini {
+      min-height: 34px;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.75rem;
+      border-radius: var(--rounded);
+      border: 1px solid var(--outline-variant);
+      background-color: var(--surface-container-low);
+      color: var(--on-surface);
+      cursor: pointer;
+    }
+    .btn-mini:hover {
+      background-color: var(--surface-container);
+    }
+
+    .empty-state {
+      padding: var(--space-lg);
+      text-align: center;
+      background-color: var(--background);
+      border: 1px dashed var(--outline-variant);
+      border-radius: var(--rounded);
+      color: var(--on-surface-variant);
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+
+    /* Footer */
+    .royal-footer {
+      max-width: 1200px;
+      margin: 0 auto var(--space-xl);
+      padding: var(--space-md) var(--space-lg);
+      border-top: var(--rule-gold);
+      color: var(--on-surface-variant);
+      font-size: 0.8125rem;
+      line-height: 1.7;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: var(--space-md);
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 960px) {
+      .calculator-grid,
+      .bottom-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page-grid {
+        padding: var(--space-md);
+        gap: var(--space-md);
+      }
+      .royal-masthead {
+        padding: var(--space-md);
+      }
+      .hanji-panel {
+        padding: var(--space-md);
+      }
+      .dual-tenure-grid {
+        grid-template-columns: 1fr;
+      }
+      .masthead-aside {
+        width: 100%;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .masthead-actions {
+        flex-direction: row;
+        align-items: center;
+      }
+      .seal-stamp {
+        writing-mode: horizontal-tb;
+        padding: 0.35rem 0.65rem;
+      }
+      .action-feedback {
+        margin-left: 0;
+        width: 100%;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+  <style>
+    .site-nav { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; max-width: 1180px; margin: 1rem auto 0; padding: 0 1.25rem; }
+    .site-nav a { color: var(--primary); border: 1px solid var(--outline-variant); background: var(--surface-container-low); padding: 0.45rem 0.75rem; text-decoration: none; font: 600 0.82rem/1.2 var(--font-label); }
+    .site-nav a:hover, .site-nav a:focus-visible { color: var(--on-primary); background: var(--primary); }
+    .site-nav a[aria-current="page"] { color: var(--on-primary); background: var(--primary); border-color: var(--primary); }
+  </style>
+</head>
+<body>
+  <nav class="site-nav" aria-label="網站導覽">
+    <a href="index.html">首頁</a>
+    <a href="鎖頭銀行退休金試算器_正式版.html">綜合退休金</a>
+    <a href="鎖頭銀行退休金試算器_多情境版.html">多情境試算</a>
+    <a href="鎖頭銀行退休金試算器_公保.html" aria-current="page">公保退休金</a>
+    <a href="鎖頭銀行退休金試算器_勞退新制.html">勞退新制</a>
+  </nav>
+
+  <header class="royal-masthead">
+    <div class="masthead-inner">
+      <div class="masthead-text">
+        <div class="masthead-kicker">純公保退休制度・養老一次給付精算</div>
+        <h1 class="masthead-title">鎖頭銀行公保退休金試算器</h1>
+        <p class="masthead-subtitle">
+          專為鎖頭銀行適用純公保（公教人員保險）制度之行員設計。支援自訂每月薪資連動或直接輸入公保保俸，依年資核計法定給付月數與上限，即時拆解「公保保俸 × 給付月數」完整算式與生涯給付曲線。
+        </p>
+      </div>
+      <div class="masthead-aside">
+        <div class="masthead-actions">
+          <button type="button" class="btn btn-ghost-light" id="btn-export-csv" onclick="exportSavedCsv()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            匯出比較表
+          </button>
+          <button type="button" class="btn btn-ghost-light" id="btn-reset-all" onclick="handleResetAll(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polyline points="1 4 1 10 7 10"/>
+              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+            </svg>
+            重設預設值
+          </button>
+        </div>
+        <div class="seal-stamp" aria-label="鎖頭公保御算印記">鎖頭公保</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-grid">
+
+    <!-- Quick Scenario Presets -->
+    <section class="preset-strip" aria-label="常用行員情境預設">
+      <div class="preset-label-group">
+        <span class="preset-title">快速情境範例（一鍵帶入）</span>
+        <span class="preset-desc">點選常見鎖頭銀行職員職等與年資組合，立即檢視純公保養老一次給付試算結果</span>
+      </div>
+      <div class="preset-buttons" id="preset-buttons">
+        <button type="button" class="btn btn-preset" data-preset="junior" onclick="applyPreset('junior')">初階辦事員・10年資</button>
+        <button type="button" class="btn btn-preset is-active" data-preset="senior" onclick="applyPreset('senior')">資深專員・18年資</button>
+        <button type="button" class="btn btn-preset" data-preset="manager" onclick="applyPreset('manager')">分行主管・25年資(封頂)</button>
+        <button type="button" class="btn btn-preset" data-preset="executive" onclick="applyPreset('executive')">高階主管・30年資</button>
+      </div>
+    </section>
+
+    <!-- Main Calculator Split: Inputs Left, Live Answer Right -->
+    <section class="calculator-grid" aria-label="公保退休金試算核心">
+
+      <!-- Left: Parameter Inputs -->
+      <div class="hanji-panel hanji-panel--indigo">
+        <div class="panel-header">
+          <h2 class="panel-title">試算參數設定</h2>
+          <span class="panel-tag">即時同步運算</span>
+        </div>
+
+        <div class="control-section">
+          <!-- Salary / Insured Base Mode -->
+          <div class="field-group">
+            <div class="field-label-row">
+              <span class="field-label">薪資與公保保俸輸入方式</span>
+              <span class="field-hint">支援月薪連動或直接輸入</span>
+            </div>
+            <div class="segmented-group" role="group" aria-label="保俸計算模式">
+              <button type="button" class="seg-btn is-active" id="mode-btn-direct" onclick="setSalaryMode('direct')">直接輸入公保保俸</button>
+              <button type="button" class="seg-btn" id="mode-btn-linked" onclick="setSalaryMode('linked')">由每月薪資連動</button>
+            </div>
+          </div>
+
+          <!-- Direct Insured Salary Input -->
+          <div id="block-direct-salary" class="field-group">
+            <div class="field-label-row">
+              <label class="field-label" for="input-insured-salary">每月公保保俸（保險俸給）</label>
+              <span class="field-hint">範圍 NT$ 20,000 – 130,000</span>
+            </div>
+            <div class="input-with-unit">
+              <input type="number" id="input-insured-salary" min="20000" max="130000" step="100" value="62500" oninput="syncInsuredFromNumber(this.value)">
+              <span class="input-unit">元 / 月</span>
+            </div>
+            <input type="range" class="hanji-slider" id="slider-insured-salary" min="20000" max="130000" step="500" value="62500" aria-label="每月公保保俸滑桿" oninput="syncInsuredFromSlider(this.value)">
+            <div class="slider-ticks">
+              <span>20,000</span>
+              <span>55,000</span>
+              <span>90,000</span>
+              <span>130,000</span>
+            </div>
+          </div>
+
+          <!-- Monthly Total Salary Linked Mode -->
+          <div id="block-linked-salary" class="control-section" style="display: none;">
+            <div class="field-group">
+              <div class="field-label-row">
+                <label class="field-label" for="input-monthly-salary">每月實領薪資總額（含各項津貼）</label>
+                <span class="field-hint">NT$ 28,000 – 200,000</span>
+              </div>
+              <div class="input-with-unit">
+                <input type="number" id="input-monthly-salary" min="28000" max="200000" step="500" value="83000" oninput="syncMonthlyFromNumber(this.value)">
+                <span class="input-unit">元 / 月</span>
+              </div>
+              <input type="range" class="hanji-slider" id="slider-monthly-salary" min="28000" max="200000" step="1000" value="83000" aria-label="每月實領薪資滑桿" oninput="syncMonthlyFromSlider(this.value)">
+            </div>
+
+            <div class="field-group">
+              <div class="field-label-row">
+                <label class="field-label" for="input-base-ratio">公保保俸占月薪比例（本俸核定率）</label>
+                <span class="field-hint">預設 75%（可微調）</span>
+              </div>
+              <div class="input-with-unit">
+                <input type="number" id="input-base-ratio" min="40" max="100" step="1" value="75" oninput="syncRatioFromNumber(this.value)">
+                <span class="input-unit">%</span>
+              </div>
+              <input type="range" class="hanji-slider" id="slider-base-ratio" min="40" max="100" step="1" value="75" aria-label="公保保俸比例滑桿" oninput="syncRatioFromSlider(this.value)">
+            </div>
+
+            <div class="computed-preview-box">
+              <span>換算每月公保保俸（四捨五入至百元）</span>
+              <span class="computed-preview-val tabular-nums" id="linked-insured-preview">NT$ 62,300</span>
+            </div>
+          </div>
+
+          <div class="control-divider"></div>
+
+          <!-- Benefit Rule Mode -->
+          <div class="field-group">
+            <div class="field-label-row">
+              <span class="field-label">公保養老給付月數制度</span>
+              <span class="field-hint">可切換法定上限規則</span>
+            </div>
+            <div class="segmented-group" role="group" aria-label="給付月數計算制度">
+              <button type="button" class="seg-btn is-active" id="rule-btn-classic36" onclick="setBenefitRule('classic36')">經典分段制<br><small>上限 36 個月</small></button>
+              <button type="button" class="seg-btn" id="rule-btn-linear12" onclick="setBenefitRule('linear12')">1.2 倍年資制<br><small>上限 42 個月</small></button>
+              <button type="button" class="seg-btn" id="rule-btn-custom" onclick="setBenefitRule('custom')">自訂給付月數<br><small>手動輸入月數</small></button>
+            </div>
+          </div>
+
+          <!-- Tenure Inputs (Year + Month) -->
+          <div id="block-tenure-inputs" class="control-section">
+            <div class="dual-tenure-grid">
+              <div class="field-group">
+                <div class="field-label-row">
+                  <label class="field-label" for="input-years">公保投保年資（年）</label>
+                </div>
+                <div class="input-with-unit">
+                  <input type="number" id="input-years" min="0" max="40" step="1" value="18" oninput="syncYearsFromNumber(this.value)">
+                  <span class="input-unit">年</span>
+                </div>
+                <input type="range" class="hanji-slider" id="slider-years" min="0" max="40" step="1" value="18" aria-label="公保年資年數滑桿" oninput="syncYearsFromSlider(this.value)">
+              </div>
+
+              <div class="field-group">
+                <div class="field-label-row">
+                  <label class="field-label" for="input-months">畸零月數（月）</label>
+                </div>
+                <div class="input-with-unit">
+                  <input type="number" id="input-months" min="0" max="11" step="1" value="0" oninput="syncMonthsFromNumber(this.value)">
+                  <span class="input-unit">個月</span>
+                </div>
+                <input type="range" class="hanji-slider" id="slider-months" min="0" max="11" step="1" value="0" aria-label="公保畸零月數滑桿" oninput="syncMonthsFromSlider(this.value)">
+              </div>
+            </div>
+
+            <div class="inline-notice inline-notice--warning" id="notice-short-tenure" role="status">
+              註：依《公教人員保險法》規定，未滿 5 年者原則需符合法定退休或資遣條件方得請領一次養老給付（未滿 5 年實務多以每年 1 個月按比例計列，本系統同步顯示估算金額供參考）。
+            </div>
+          </div>
+
+          <!-- Custom Months Input -->
+          <div id="block-custom-months" class="field-group" style="display: none;">
+            <div class="field-label-row">
+              <label class="field-label" for="input-custom-months">自訂核計給付月數</label>
+              <span class="field-hint">0.0 – 42.0 個月</span>
+            </div>
+            <div class="input-with-unit">
+              <input type="number" id="input-custom-months" min="0" max="42" step="0.1" value="29.0" oninput="syncCustomMonthsFromNumber(this.value)">
+              <span class="input-unit">個月</span>
+            </div>
+            <input type="range" class="hanji-slider" id="slider-custom-months" min="0" max="42" step="0.5" value="29" aria-label="自訂給付月數滑桿" oninput="syncCustomMonthsFromSlider(this.value)">
+            <div class="slider-ticks">
+              <span>0 月</span>
+              <span>15 月</span>
+              <span>36 月(常見上限)</span>
+              <span>42 月</span>
+            </div>
+          </div>
+
+          <!-- Advanced Settings (10-year avg vs Current Month) -->
+          <details class="advanced-box" id="advanced-details">
+            <summary>
+              <span>進階參數：平均保俸基準與自付保費率</span>
+              <span class="field-hint">點此展開調整</span>
+            </summary>
+            <div class="advanced-inner">
+              <div class="field-group">
+                <div class="field-label-row">
+                  <span class="field-label">保俸計列基準</span>
+                </div>
+                <div class="segmented-group" role="group" aria-label="平均保俸計列方式">
+                  <button type="button" class="seg-btn is-active" id="avg-btn-final" onclick="setAvgBaseMode('final')">以當月公保保俸全額計列</button>
+                  <button type="button" class="seg-btn" id="avg-btn-10yr" onclick="setAvgBaseMode('10yr')">近 10 年平均保俸折算</button>
+                </div>
+              </div>
+
+              <div id="block-10yr-factor" class="field-group" style="display: none;">
+                <div class="field-label-row">
+                  <label class="field-label" for="input-10yr-factor">近 10 年平均保俸折算比例</label>
+                  <span class="field-hint">反映過去十年調薪階梯</span>
+                </div>
+                <div class="input-with-unit">
+                  <input type="number" id="input-10yr-factor" min="70" max="100" step="1" value="92" oninput="syncFactorFromNumber(this.value)">
+                  <span class="input-unit">%</span>
+                </div>
+                <input type="range" class="hanji-slider" id="slider-10yr-factor" min="70" max="100" step="1" value="92" aria-label="十年平均保俸折算比例滑桿" oninput="syncFactorFromSlider(this.value)">
+              </div>
+
+              <div class="field-group">
+                <div class="field-label-row">
+                  <label class="field-label" for="input-premium-rate">公保保險費率參考（員工自付 35%）</label>
+                  <span class="field-hint">現行參考費率 10.16%</span>
+                </div>
+                <div class="input-with-unit">
+                  <input type="number" id="input-premium-rate" min="5" max="16" step="0.01" value="10.16" oninput="updatePremiumFromInput(this.value)">
+                  <span class="input-unit">%</span>
+                </div>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Right: Live Result & Formula Breakdown -->
+      <div class="outputs-stack">
+
+        <!-- Hero Output Card -->
+        <div class="hanji-panel hanji-panel--crimson" aria-live="polite">
+          <div class="hero-result-top">
+            <div>
+              <div class="result-eyebrow">預估純公保養老一次給付總額（公保保俸 × 給付月數）</div>
+              <p class="result-main-figure tabular-nums" id="output-total-amount">NT$ 1,812,500</p>
+              <div class="result-sub-figure">
+                <span id="output-wan-amount">約 181.25 萬元</span>
+                <span>•</span>
+                <span id="output-chinese-amount">壹佰捌拾壹萬貳仟伍佰元整</span>
+              </div>
+            </div>
+            <div class="status-seal status-seal--growing" id="output-cap-badge">尚餘 7.0 個月上調空間</div>
+          </div>
+
+          <div class="metrics-trio">
+            <div class="metric-leaf">
+              <div class="metric-leaf-label">採計公保保俸</div>
+              <div class="metric-leaf-value tabular-nums" id="output-base-salary">NT$ 62,500</div>
+              <div class="metric-leaf-note" id="output-base-note">當月核定保俸 100% 計列</div>
+            </div>
+            <div class="metric-leaf">
+              <div class="metric-leaf-label">核計給付月數</div>
+              <div class="metric-leaf-value tabular-nums" id="output-benefit-months">29.00 個月</div>
+              <div class="metric-leaf-note" id="output-months-note">經典分段制・上限 36 個月</div>
+            </div>
+            <div class="metric-leaf">
+              <div class="metric-leaf-label">每月自付保費參考</div>
+              <div class="metric-leaf-value tabular-nums" id="output-monthly-premium">NT$ 2,223</div>
+              <div class="metric-leaf-note" id="output-premium-note">費率 10.16% × 自付 35%</div>
+            </div>
+          </div>
+
+          <div class="result-actions">
+            <button type="button" class="btn btn-crimson" onclick="saveCurrentScenario()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+              </svg>
+              加入比較冊
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="copySummaryToClipboard()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+              複製試算摘要
+            </button>
+            <span class="action-feedback" id="action-feedback" role="status"></span>
+          </div>
+        </div>
+
+        <!-- Formula Breakdown Card -->
+        <div class="hanji-panel hanji-panel--indigo">
+          <div class="panel-header">
+            <h2 class="panel-title">試算公式即時拆解</h2>
+            <span class="panel-tag" id="formula-rule-tag">經典公保分段制</span>
+          </div>
+
+          <div class="formula-equation-box" aria-label="公保養老一次給付算式">
+            <div class="eq-term">
+              <span class="eq-term-label">採計公保保俸</span>
+              <span class="eq-term-val tabular-nums" id="eq-base">$62,500</span>
+            </div>
+            <span class="eq-op" aria-hidden="true">×</span>
+            <div class="eq-term">
+              <span class="eq-term-label">核計給付月數</span>
+              <span class="eq-term-val tabular-nums" id="eq-months">29.00 月</span>
+            </div>
+            <span class="eq-op" aria-hidden="true">＝</span>
+            <div class="eq-term eq-term--result">
+              <span class="eq-term-label">養老一次給付</span>
+              <span class="eq-term-val tabular-nums" id="eq-total">$1,812,500</span>
+            </div>
+          </div>
+
+          <div class="segment-bar-wrap" id="segment-bar-wrap">
+            <div class="field-label-row" style="margin-bottom: 6px;">
+              <span class="field-hint">給付月數上限達成進度</span>
+              <span class="field-hint tabular-nums" id="cap-progress-text">29.00 / 36.00 個月 (80.6%)</span>
+            </div>
+            <div class="segment-bar" id="segment-bar" aria-hidden="true"></div>
+          </div>
+
+          <div class="hanji-table-wrap">
+            <table class="hanji-table" aria-label="年資區間給付月數與金額拆解表">
+              <thead>
+                <tr>
+                  <th>年資分段 / 計算說明</th>
+                  <th class="num">計入年資</th>
+                  <th class="num">每年給付</th>
+                  <th class="num">小計月數</th>
+                  <th class="num">對應給付金額</th>
+                </tr>
+              </thead>
+              <tbody id="breakdown-tbody"></tbody>
+              <tfoot id="breakdown-tfoot"></tfoot>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Interactive SVG Growth Curve -->
+    <section class="hanji-panel hanji-panel--indigo" aria-label="年資與公保養老給付累積曲線">
+      <div class="panel-header">
+        <h2 class="panel-title">公保年資與養老給付累積曲線（1–35 年）</h2>
+        <span class="panel-tag">點擊或移動檢視各年資試算點</span>
+      </div>
+      <div class="chart-container" id="chart-container">
+        <svg id="tenure-chart" class="chart-svg" viewBox="0 0 880 310" role="img" aria-label="公保年資對應養老一次給付金額曲線圖"></svg>
+      </div>
+      <div class="chart-tooltip" id="chart-hover-bar">
+        <span>游標 / 檢視年資：<strong id="chart-probe-year">18 年</strong>（<span id="chart-probe-months">29.00 個月</span>）</span>
+        <span>預估一次給付：<strong class="tabular-nums" style="color: var(--tertiary);" id="chart-probe-amount">NT$ 1,812,500</strong></span>
+      </div>
+      <div class="chart-legend">
+        <span class="legend-item"><span class="legend-swatch" style="background-color: var(--primary);"></span>給付金額曲線</span>
+        <span class="legend-item"><span class="legend-swatch" style="border-top: 2px dashed var(--outline);"></span>法定給付上限線（<span id="legend-cap-months">36 個月</span>）</span>
+        <span class="legend-item"><span class="legend-dot" style="background-color: var(--tertiary);"></span>目前試算位置</span>
+      </div>
+    </section>
+
+    <!-- Bottom Grid: Reference Salary Scale + Saved Scenarios -->
+    <section class="bottom-grid" aria-label="各級保俸對照與方案比較">
+
+      <!-- Left: Salary Grade Reference Table -->
+      <div class="hanji-panel hanji-panel--indigo">
+        <div class="panel-header">
+          <h2 class="panel-title">鎖頭銀行各級公保保俸對照參考</h2>
+          <span class="panel-tag">點擊「套用」直接帶入試算</span>
+        </div>
+
+        <div class="table-toolbar">
+          <div class="filter-pills" role="group" aria-label="職等群組篩選">
+            <button type="button" class="filter-btn is-active" data-tier="all" onclick="filterSalaryTable('all', this)">全部職等</button>
+            <button type="button" class="filter-btn" data-tier="junior" onclick="filterSalaryTable('junior', this)">初階行員 (5–7職等)</button>
+            <button type="button" class="filter-btn" data-tier="mid" onclick="filterSalaryTable('mid', this)">中階專員/襄理 (8–10職等)</button>
+            <button type="button" class="filter-btn" data-tier="senior" onclick="filterSalaryTable('senior', this)">高階經理/處長 (11–13職等)</button>
+          </div>
+        </div>
+
+        <div class="hanji-table-wrap">
+          <table class="hanji-table" aria-label="鎖頭銀行職員公保保俸參考級距表">
+            <thead>
+              <tr>
+                <th>職等參考</th>
+                <th>代表職稱</th>
+                <th class="num">參考公保保俸</th>
+                <th class="num">15年(20月)</th>
+                <th class="num">20年(36月封頂)</th>
+                <th style="text-align: right;">帶入試算</th>
+              </tr>
+            </thead>
+            <tbody id="grade-table-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right: Saved Comparison Ledger -->
+      <div class="hanji-panel hanji-panel--crimson">
+        <div class="panel-header">
+          <h2 class="panel-title">試算方案比較冊</h2>
+          <span class="panel-tag" id="saved-count-tag">0 / 4 筆方案</span>
+        </div>
+
+        <div class="saved-list" id="saved-list-container">
+          <div class="empty-state">
+            尚未加入任何試算方案。<br>
+            調整上方薪資與年資後，點擊「加入比較冊」，即可在此並排比對不同職等或年資的純公保養老一次給付。
+          </div>
+        </div>
+
+        <div style="margin-top: var(--space-md); display: flex; justify-content: flex-end;">
+          <button type="button" class="btn btn-secondary" id="btn-clear-saved" onclick="clearSavedScenarios(this)" style="display: none;">
+            清空比較冊
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="royal-footer">
+    <div>
+      <strong>制度說明與免責提醒：</strong>本試算器專注於「鎖頭銀行純公保（公教人員保險）」一次養老給付試算；實際給付仍須依最新《公教人員保險法》、被保險人退休核定之保險俸給及實際投保年資，由公保承保機構核定為準。
+    </div>
+    <div class="tabular-nums">鎖頭銀行純公保精算・宣紙典藏版</div>
+  </footer>
+
+  <api-shim></api-shim>
+  <script>
+    // =========================================================================
+    // Data & Domain Tables (Pure GPI / Lock Bank Employee Reference Grades)
+    // =========================================================================
+    const SALARY_GRADES = [
+      { id: `g5`, tier: `junior`, rank: `5 職等`, title: `初任辦事員`, base: 34500, estTotal: 46000 },
+      { id: `g6`, tier: `junior`, rank: `6 職等`, title: `高級辦事員`, base: 42800, estTotal: 57000 },
+      { id: `g7`, tier: `junior`, rank: `7 職等`, title: `領組 / 資深行員`, base: 51200, estTotal: 68500 },
+      { id: `g8`, tier: `mid`, rank: `8 職等`, title: `專員 / 副科長`, base: 62500, estTotal: 83000 },
+      { id: `g9`, tier: `mid`, rank: `9 職等`, title: `襄理 / 資深專員`, base: 72400, estTotal: 96500 },
+      { id: `g10`, tier: `mid`, rank: `10 職等`, title: `副理 / 科長`, base: 83600, estTotal: 111500 },
+      { id: `g11`, tier: `senior`, rank: `11 職等`, title: `分行經理 / 主任`, base: 94800, estTotal: 126500 },
+      { id: `g12`, tier: `senior`, rank: `12 職等`, title: `資深經理 / 副處長`, base: 106500, estTotal: 142000 },
+      { id: `g13`, tier: `senior`, rank: `13 職等`, title: `處長 / 總行高階主管`, base: 118000, estTotal: 158000 }
+    ];
+
+    const PRESETS = {
+      junior: {
+        label: `初階辦事員・10年資`,
+        salaryMode: `direct`,
+        insuredSalary: 42800,
+        monthlySalary: 57000,
+        baseRatio: 75,
+        benefitRule: `classic36`,
+        years: 10,
+        months: 0,
+        customMonths: 10,
+        avgBaseMode: `final`,
+        factor10yr: 92
+      },
+      senior: {
+        label: `資深專員・18年資`,
+        salaryMode: `direct`,
+        insuredSalary: 62500,
+        monthlySalary: 83000,
+        baseRatio: 75,
+        benefitRule: `classic36`,
+        years: 18,
+        months: 0,
+        customMonths: 29,
+        avgBaseMode: `final`,
+        factor10yr: 92
+      },
+      manager: {
+        label: `分行主管・25年資`,
+        salaryMode: `direct`,
+        insuredSalary: 94800,
+        monthlySalary: 126500,
+        baseRatio: 75,
+        benefitRule: `classic36`,
+        years: 25,
+        months: 0,
+        customMonths: 36,
+        avgBaseMode: `final`,
+        factor10yr: 92
+      },
+      executive: {
+        label: `高階主管・30年資`,
+        salaryMode: `linked`,
+        insuredSalary: 118500,
+        monthlySalary: 158000,
+        baseRatio: 75,
+        benefitRule: `classic36`,
+        years: 30,
+        months: 0,
+        customMonths: 36,
+        avgBaseMode: `final`,
+        factor10yr: 92
+      }
+    };
+
+    const DEFAULT_STATE = {
+      activePreset: `senior`,
+      salaryMode: `direct`,       // 'direct' | 'linked'
+      insuredSalary: 62500,
+      monthlySalary: 83000,
+      baseRatio: 75,
+      benefitRule: `classic36`,   // 'classic36' | 'linear12' | 'custom'
+      years: 18,
+      months: 0,
+      customMonths: 29.0,
+      avgBaseMode: `final`,       // 'final' | '10yr'
+      factor10yr: 92,
+      premiumRate: 10.16,
+      gradeFilter: `all`,
+      savedScenarios: []
+    };
+
+    let appState = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    let hoveredChartYear = null;
+    let feedbackTimer = null;
+
+    // =========================================================================
+    // Core GPI Calculation Functions
+    // =========================================================================
+    function clampNum(val, min, max) {
+      const n = Number(val);
+      if (Number.isNaN(n)) return min;
+      return Math.min(max, Math.max(min, n));
+    }
+
+    function getRawInsuredSalary() {
+      if (appState.salaryMode === `linked`) {
+        const raw = (appState.monthlySalary * appState.baseRatio) / 100;
+        return Math.round(raw / 100) * 100;
+      }
+      return Math.round(appState.insuredSalary);
+    }
+
+    function getEffectiveBaseSalary() {
+      const rawBase = getRawInsuredSalary();
+      if (appState.avgBaseMode === `10yr`) {
+        return Math.round((rawBase * appState.factor10yr) / 100);
+      }
+      return rawBase;
+    }
+
+    // Classic 36-month cap rule:
+    // Years 0-10: 1 mo/yr (max 10)
+    // Years 10-15: 2 mo/yr (max +10 = 20)
+    // Years 15-19: 3 mo/yr (max +12 = 32)
+    // Year 19-20+: reaches statutory cap of 36 months at full 20 years (4 months for the 20th year, capped at 36)
+    function computeClassic36Months(totalYears) {
+      if (totalYears <= 0) {
+        return { months: 0, segments: [], cap: 36, isCapped: false };
+      }
+      const seg1Yrs = Math.min(totalYears, 10);
+      const seg1Mo = seg1Yrs * 1;
+
+      const seg2Yrs = Math.max(0, Math.min(totalYears, 15) - 10);
+      const seg2Mo = seg2Yrs * 2;
+
+      const seg3Yrs = Math.max(0, Math.min(totalYears, 19) - 15);
+      const seg3Mo = seg3Yrs * 3;
+
+      const seg4Yrs = Math.max(0, Math.min(totalYears, 20) - 19);
+      const seg4Mo = seg4Yrs * 4; // completes 32 + 4 = 36 at year 20
+
+      const rawTotal = seg1Mo + seg2Mo + seg3Mo + seg4Mo;
+      const cappedTotal = Math.min(36, rawTotal);
+
+      const segments = [
+        { label: `第 1 – 10 年（基本年資）`, years: seg1Yrs, rate: `1.0 月/年`, months: seg1Mo, cls: `seg-fill--t1` },
+        { label: `第 11 – 15 年（中階年資）`, years: seg2Yrs, rate: `2.0 月/年`, months: seg2Mo, cls: `seg-fill--t2` },
+        { label: `第 16 – 19 年（資深加計）`, years: seg3Yrs, rate: `3.0 月/年`, months: seg3Mo, cls: `seg-fill--t3` },
+        { label: `第 20 年以上（封頂年資）`, years: Math.max(0, totalYears - 19), rate: `達 20 年封頂 36 月`, months: seg4Mo, cls: `seg-fill--t4` }
+      ];
+
+      return {
+        months: Number(cappedTotal.toFixed(2)),
+        segments: segments,
+        cap: 36,
+        isCapped: totalYears >= 20
+      };
+    }
+
+    // Current 1.2 months per year (42 months cap at 35 years)
+    function computeLinear12Months(totalYears) {
+      const rawTotal = totalYears * 1.2;
+      const cappedTotal = Math.min(42, rawTotal);
+      const countedYears = Math.min(35, totalYears);
+      const segments = [
+        {
+          label: `現行 1.2 倍比例計列（最高採計 35 年）`,
+          years: countedYears,
+          rate: `1.2 月/年`,
+          months: Number(cappedTotal.toFixed(2)),
+          cls: `seg-fill--t1`
+        }
+      ];
+      return {
+        months: Number(cappedTotal.toFixed(2)),
+        segments: segments,
+        cap: 42,
+        isCapped: cappedTotal >= 42
+      };
+    }
+
+    function computeBenefitForYears(yearsDecimal, rule) {
+      if (rule === `linear12`) return computeLinear12Months(yearsDecimal);
+      if (rule === `classic36`) return computeClassic36Months(yearsDecimal);
+      const m = clampNum(appState.customMonths, 0, 42);
+      return {
+        months: Number(m.toFixed(2)),
+        segments: [
+          { label: `手動指定給付月數`, years: null, rate: `自訂輸入`, months: Number(m.toFixed(2)), cls: `seg-fill--t1` }
+        ],
+        cap: 36,
+        isCapped: m >= 36
+      };
+    }
+
+    function formatCurrency(num) {
+      return `NT$ ` + Math.round(num).toLocaleString(`zh-TW`);
+    }
+
+    function formatShortCurrency(num) {
+      return `$` + Math.round(num).toLocaleString(`zh-TW`);
+    }
+
+    function toChineseCurrency(num) {
+      const n = Math.round(num);
+      if (n <= 0) return `零元整`;
+      const digits = [`零`, `壹`, `貳`, `參`, `肆`, `伍`, `陸`, `柒`, `捌`, `玖`];
+      const units = [``, `拾`, `佰`, `仟`];
+      const bigUnits = [``, `萬`, `億`];
+      let str = String(n);
+      let groups = [];
+      while (str.length > 0) {
+        groups.unshift(str.slice(Math.max(0, str.length - 4)));
+        str = str.slice(0, Math.max(0, str.length - 4));
+      }
+      let result = ``;
+      for (let g = 0; g < groups.length; g++) {
+        const grp = groups[g];
+        let grpStr = ``;
+        let zeroPending = false;
+        for (let i = 0; i < grp.length; i++) {
+          const d = Number(grp[i]);
+          const pos = grp.length - 1 - i;
+          if (d === 0) {
+            zeroPending = true;
+          } else {
+            if (zeroPending && grpStr !== ``) grpStr += `零`;
+            grpStr += digits[d] + units[pos];
+            zeroPending = false;
+          }
+        }
+        if (grpStr !== ``) {
+          if (result !== `` && grp[0] === `0`) result += `零`;
+          result += grpStr + bigUnits[groups.length - 1 - g];
+        }
+      }
+      return result + `元整`;
+    }
+
+    // =========================================================================
+    // Main Render Cycle
+    // =========================================================================
+    function updateCalculations() {
+      const rawBase = getRawInsuredSalary();
+      const effectiveBase = getEffectiveBaseSalary();
+      const totalYearsDecimal = appState.years + (appState.months / 12);
+
+      const calc = computeBenefitForYears(totalYearsDecimal, appState.benefitRule);
+      const totalAmount = Math.round(effectiveBase * calc.months);
+      const monthlyPremium = Math.round(rawBase * (appState.premiumRate / 100) * 0.35);
+
+      // Preview box in linked mode
+      const previewEl = document.getElementById(`linked-insured-preview`);
+      if (previewEl) previewEl.textContent = formatCurrency(rawBase);
+
+      // Short tenure notice (< 5 years)
+      const shortNotice = document.getElementById(`notice-short-tenure`);
+      if (shortNotice) {
+        if (appState.benefitRule !== `custom` && totalYearsDecimal < 5) {
+          shortNotice.classList.add(`is-visible`);
+        } else {
+          shortNotice.classList.remove(`is-visible`);
+        }
+      }
+
+      // Hero Numbers
+      const totalEl = document.getElementById(`output-total-amount`);
+      if (totalEl) totalEl.textContent = formatCurrency(totalAmount);
+
+      const wanEl = document.getElementById(`output-wan-amount`);
+      if (wanEl) wanEl.textContent = `約 ${(totalAmount / 10000).toFixed(2)} 萬元`;
+
+      const cnEl = document.getElementById(`output-chinese-amount`);
+      if (cnEl) cnEl.textContent = toChineseCurrency(totalAmount);
+
+      // Cap Badge
+      const badgeEl = document.getElementById(`output-cap-badge`);
+      if (badgeEl) {
+        badgeEl.className = `status-seal`;
+        if (appState.benefitRule !== `custom` && totalYearsDecimal < 5) {
+          badgeEl.classList.add(`status-seal--short`);
+          badgeEl.textContent = `年資未滿 5 年（依退休條件請領）`;
+        } else if (calc.isCapped) {
+          badgeEl.classList.add(`status-seal--capped`);
+          badgeEl.textContent = `已達法定上限 ${calc.cap} 個月`;
+        } else {
+          badgeEl.classList.add(`status-seal--growing`);
+          const remain = Math.max(0, calc.cap - calc.months).toFixed(2);
+          badgeEl.textContent = `尚餘 ${remain} 個月成長空間`;
+        }
+      }
+
+      // Trio Cards
+      const baseEl = document.getElementById(`output-base-salary`);
+      if (baseEl) baseEl.textContent = formatCurrency(effectiveBase);
+
+      const baseNoteEl = document.getElementById(`output-base-note`);
+      if (baseNoteEl) {
+        baseNoteEl.textContent = appState.avgBaseMode === `10yr`
+          ? `原保俸 ${formatShortCurrency(rawBase)} × ${appState.factor10yr}%`
+          : `當月核定保俸 100% 計列`;
+      }
+
+      const monthsEl = document.getElementById(`output-benefit-months`);
+      if (monthsEl) monthsEl.textContent = `${calc.months.toFixed(2)} 個月`;
+
+      const monthsNoteEl = document.getElementById(`output-months-note`);
+      if (monthsNoteEl) {
+        if (appState.benefitRule === `classic36`) monthsNoteEl.textContent = `經典分段制・上限 36 個月`;
+        else if (appState.benefitRule === `linear12`) monthsNoteEl.textContent = `1.2 倍年資制・上限 42 個月`;
+        else monthsNoteEl.textContent = `手動指定給付月數`;
+      }
+
+      const premEl = document.getElementById(`output-monthly-premium`);
+      if (premEl) premEl.textContent = formatCurrency(monthlyPremium);
+
+      const premNoteEl = document.getElementById(`output-premium-note`);
+      if (premNoteEl) premNoteEl.textContent = `費率 ${appState.premiumRate}% × 自付 35%`;
+
+      // Formula Breakdown
+      const ruleTag = document.getElementById(`formula-rule-tag`);
+      if (ruleTag) {
+        ruleTag.textContent = appState.benefitRule === `classic36`
+          ? `經典公保分段制`
+          : appState.benefitRule === `linear12`
+            ? `現行 1.2 倍年資制`
+            : `自訂給付月數模式`;
+      }
+
+      const eqBase = document.getElementById(`eq-base`);
+      const eqMonths = document.getElementById(`eq-months`);
+      const eqTotal = document.getElementById(`eq-total`);
+      if (eqBase) eqBase.textContent = formatShortCurrency(effectiveBase);
+      if (eqMonths) eqMonths.textContent = `${calc.months.toFixed(2)} 月`;
+      if (eqTotal) eqTotal.textContent = formatShortCurrency(totalAmount);
+
+      // Segment Progress Bar
+      const pct = Math.min(100, (calc.months / calc.cap) * 100);
+      const capText = document.getElementById(`cap-progress-text`);
+      if (capText) {
+        capText.textContent = `${calc.months.toFixed(2)} / ${calc.cap.toFixed(2)} 個月 (${pct.toFixed(1)}%)`;
+      }
+
+      const segBar = document.getElementById(`segment-bar`);
+      if (segBar) {
+        segBar.innerHTML = calc.segments.map(s => {
+          const w = calc.cap > 0 ? Math.min(100, (s.months / calc.cap) * 100) : 0;
+          return `<div class="seg-fill ${s.cls}" style="width: ${w.toFixed(2)}%"></div>`;
+        }).join(``);
+      }
+
+      // Breakdown Table
+      const tbody = document.getElementById(`breakdown-tbody`);
+      const tfoot = document.getElementById(`breakdown-tfoot`);
+      if (tbody && tfoot) {
+        tbody.innerHTML = calc.segments.map(s => {
+          const amt = Math.round(effectiveBase * s.months);
+          const yrsLabel = s.years === null ? `—` : `${s.years.toFixed(2)} 年`;
+          return `
+            <tr>
+              <td>${s.label}</td>
+              <td class="num">${yrsLabel}</td>
+              <td class="num">${s.rate}</td>
+              <td class="num">${s.months.toFixed(2)} 月</td>
+              <td class="num">${formatCurrency(amt)}</td>
+            </tr>
+          `;
+        }).join(``);
+
+        tfoot.innerHTML = `
+          <tr>
+            <td>合計預估養老一次給付</td>
+            <td class="num">${appState.benefitRule === `custom` ? `—` : totalYearsDecimal.toFixed(2) + ` 年`}</td>
+            <td class="num">上限 ${calc.cap} 月</td>
+            <td class="num">${calc.months.toFixed(2)} 月</td>
+            <td class="num" style="color: var(--tertiary);">${formatCurrency(totalAmount)}</td>
+          </tr>
+        `;
+      }
+
+      renderChart(effectiveBase, calc);
+      renderSalaryTable();
+      renderSavedScenarios();
+      persistState();
+    }
+
+    // =========================================================================
+    // Interactive SVG Growth Curve
+    // =========================================================================
+    function renderChart(effectiveBase, currentCalc) {
+      const svg = document.getElementById(`tenure-chart`);
+      if (!svg) return;
+
+      const W = 880;
+      const H = 310;
+      const pad = { top: 26, right: 32, bottom: 44, left: 86 };
+      const plotW = W - pad.left - pad.right;
+      const plotH = H - pad.top - pad.bottom;
+
+      const ruleForChart = appState.benefitRule === `custom` ? `classic36` : appState.benefitRule;
+      const maxYears = 35;
+      const pts = [];
+      for (let y = 0; y <= maxYears; y++) {
+        const res = ruleForChart === `linear12`
+          ? computeLinear12Months(y)
+          : computeClassic36Months(y);
+        pts.push({
+          year: y,
+          months: res.months,
+          amount: Math.round(effectiveBase * res.months)
+        });
+      }
+
+      const capMonths = ruleForChart === `linear12` ? 42 : 36;
+      const maxAmount = Math.max(effectiveBase * capMonths * 1.08, 500000);
+
+      const xPos = (yr) => pad.left + (yr / maxYears) * plotW;
+      const yPos = (amt) => pad.top + plotH - (amt / maxAmount) * plotH;
+
+      // Grid lines (4 ticks)
+      let gridSvg = ``;
+      for (let i = 0; i <= 4; i++) {
+        const val = (maxAmount / 4) * i;
+        const y = yPos(val);
+        const label = val >= 10000 ? `${Math.round(val / 10000)} 萬` : `0`;
+        gridSvg += `
+          <line x1="${pad.left}" y1="${y.toFixed(1)}" x2="${W - pad.right}" y2="${y.toFixed(1)}"
+                stroke="var(--outline-variant)" stroke-width="1" />
+          <text x="${pad.left - 10}" y="${(y + 4).toFixed(1)}" text-anchor="end"
+                fill="var(--on-surface-variant)" font-size="12" font-family="var(--font-label)">${label}</text>
+        `;
+      }
+
+      // X axis ticks
+      let xTicksSvg = ``;
+      [0, 5, 10, 15, 20, 25, 30, 35].forEach(yr => {
+        const x = xPos(yr);
+        xTicksSvg += `
+          <line x1="${x.toFixed(1)}" y1="${pad.top + plotH}" x2="${x.toFixed(1)}" y2="${pad.top + plotH + 5}"
+                stroke="var(--ink-outline)" stroke-width="1" />
+          <text x="${x.toFixed(1)}" y="${pad.top + plotH + 22}" text-anchor="middle"
+                fill="var(--on-surface-variant)" font-size="12" font-family="var(--font-label)">${yr}年</text>
+        `;
+      });
+
+      // Cap horizontal dashed line
+      const capAmt = effectiveBase * capMonths;
+      const capY = yPos(capAmt);
+      const capLineSvg = `
+        <line x1="${pad.left}" y1="${capY.toFixed(1)}" x2="${W - pad.right}" y2="${capY.toFixed(1)}"
+              stroke="var(--outline)" stroke-width="1.5" stroke-dasharray="6 4" />
+        <text x="${W - pad.right}" y="${(capY - 7).toFixed(1)}" text-anchor="end"
+              fill="var(--gold-text)" font-size="12" font-weight="600" font-family="var(--font-body)">
+          法定上限 ${capMonths} 個月 (${formatShortCurrency(capAmt)})
+        </text>
+      `;
+
+      // Path & Area
+      const lineCoords = pts.map(p => `${xPos(p.year).toFixed(1)},${yPos(p.amount).toFixed(1)}`);
+      const pathD = `M ${lineCoords.join(` L `)}`;
+      const areaD = `${pathD} L ${xPos(maxYears).toFixed(1)},${(pad.top + plotH).toFixed(1)} L ${xPos(0).toFixed(1)},${(pad.top + plotH).toFixed(1)} Z`;
+
+      // Current marker
+      const curYear = appState.benefitRule === `custom`
+        ? Math.min(35, Math.round((currentCalc.months / 36) * 20))
+        : Math.min(maxYears, appState.years + appState.months / 12);
+      const curAmt = Math.round(effectiveBase * currentCalc.months);
+      const cx = xPos(curYear);
+      const cy = yPos(curAmt);
+
+      const probeYr = hoveredChartYear !== null ? hoveredChartYear : Math.round(curYear);
+      const probePt = pts[clampNum(probeYr, 0, maxYears)];
+      const probeX = xPos(probePt.year);
+      const probeY = yPos(probePt.amount);
+
+      const legendCapEl = document.getElementById(`legend-cap-months`);
+      if (legendCapEl) legendCapEl.textContent = `${capMonths} 個月`;
+
+      const probeYrEl = document.getElementById(`chart-probe-year`);
+      const probeMoEl = document.getElementById(`chart-probe-months`);
+      const probeAmtEl = document.getElementById(`chart-probe-amount`);
+      if (probeYrEl && probeMoEl && probeAmtEl) {
+        if (hoveredChartYear === null) {
+          probeYrEl.textContent = appState.benefitRule === `custom`
+            ? `自訂月數`
+            : `${appState.years} 年 ${appState.months} 月`;
+          probeMoEl.textContent = `${currentCalc.months.toFixed(2)} 個月`;
+          probeAmtEl.textContent = formatCurrency(curAmt);
+        } else {
+          probeYrEl.textContent = `${probePt.year} 年`;
+          probeMoEl.textContent = `${probePt.months.toFixed(2)} 個月`;
+          probeAmtEl.textContent = formatCurrency(probePt.amount);
+        }
+      }
+
+      // Interactive invisible hit targets per year
+      let hitTargets = ``;
+      const colW = plotW / maxYears;
+      for (let y = 0; y <= maxYears; y++) {
+        const hx = xPos(y) - colW / 2;
+        hitTargets += `
+          <rect x="${Math.max(pad.left, hx).toFixed(1)}" y="${pad.top}" width="${colW.toFixed(1)}" height="${plotH}"
+                fill="transparent" style="cursor: crosshair;"
+                onmouseenter="setChartHover(${y})" onclick="selectYearFromChart(${y})" />
+        `;
+      }
+
+      svg.innerHTML = `
+        <defs>
+          <linearGradient id="hanji-area-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.18" />
+            <stop offset="100%" stop-color="var(--primary)" stop-opacity="0.01" />
+          </linearGradient>
+        </defs>
+        ${gridSvg}
+        <line x1="${pad.left}" y1="${pad.top + plotH}" x2="${W - pad.right}" y2="${pad.top + plotH}"
+              stroke="var(--ink-outline)" stroke-width="1.5" />
+        <line x1="${pad.left}" y1="${pad.top}" x2="${pad.left}" y2="${pad.top + plotH}"
+              stroke="var(--ink-outline)" stroke-width="1" />
+        ${xTicksSvg}
+        ${capLineSvg}
+        <path d="${areaD}" fill="url(#hanji-area-grad)" />
+        <path d="${pathD}" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linejoin="round" />
+
+        ${hoveredChartYear !== null ? `
+          <line x1="${probeX.toFixed(1)}" y1="${pad.top}" x2="${probeX.toFixed(1)}" y2="${pad.top + plotH}"
+                stroke="var(--outline)" stroke-width="1" stroke-dasharray="3 3" />
+          <circle cx="${probeX.toFixed(1)}" cy="${probeY.toFixed(1)}" r="5"
+                  fill="var(--surface-container-low)" stroke="var(--primary)" stroke-width="2.5" />
+        ` : ``}
+
+        <line x1="${cx.toFixed(1)}" y1="${cy.toFixed(1)}" x2="${cx.toFixed(1)}" y2="${pad.top + plotH}"
+              stroke="var(--tertiary)" stroke-width="1.2" stroke-dasharray="3 3" />
+        <circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="6"
+                fill="var(--tertiary)" stroke="var(--surface-container-low)" stroke-width="2" />
+
+        <g onmouseleave="clearChartHover()">
+          ${hitTargets}
+        </g>
+      `;
+    }
+
+    function setChartHover(year) {
+      hoveredChartYear = year;
+      const effectiveBase = getEffectiveBaseSalary();
+      const totalYearsDecimal = appState.years + (appState.months / 12);
+      const calc = computeBenefitForYears(totalYearsDecimal, appState.benefitRule);
+      renderChart(effectiveBase, calc);
+    }
+
+    function clearChartHover() {
+      hoveredChartYear = null;
+      const effectiveBase = getEffectiveBaseSalary();
+      const totalYearsDecimal = appState.years + (appState.months / 12);
+      const calc = computeBenefitForYears(totalYearsDecimal, appState.benefitRule);
+      renderChart(effectiveBase, calc);
+    }
+
+    function selectYearFromChart(year) {
+      if (appState.benefitRule === `custom`) {
+        setBenefitRule(`classic36`);
+      }
+      appState.years = clampNum(year, 0, 40);
+      appState.months = 0;
+      syncDomInputsFromState();
+      clearPresetHighlights();
+      updateCalculations();
+      showActionFeedback(`已切換年資至 ${year} 年`);
+    }
+
+    // =========================================================================
+    // Reference Grade Table
+    // =========================================================================
+    function renderSalaryTable() {
+      const tbody = document.getElementById(`grade-table-tbody`);
+      if (!tbody) return;
+
+      const currentBase = getRawInsuredSalary();
+      const rows = SALARY_GRADES.filter(g => appState.gradeFilter === `all` || g.tier === appState.gradeFilter);
+
+      tbody.innerHTML = rows.map(g => {
+        const isMatched = Math.abs(g.base - currentBase) <= 500;
+        const amt15 = g.base * 20;
+        const amt20 = g.base * 36;
+        return `
+          <tr class="${isMatched ? `is-selected-row` : ``}">
+            <td>${g.rank}</td>
+            <td>${g.title}</td>
+            <td class="num">${formatShortCurrency(g.base)}</td>
+            <td class="num">${formatShortCurrency(amt15)}</td>
+            <td class="num">${formatShortCurrency(amt20)}</td>
+            <td style="text-align: right;">
+              <button type="button" class="btn-apply-row" onclick="applyGradeRow('${g.id}')">套用</button>
+            </td>
+          </tr>
+        `;
+      }).join(``);
+    }
+
+    function filterSalaryTable(tier, btnEl) {
+      appState.gradeFilter = tier;
+      const buttons = document.querySelectorAll(`.filter-btn`);
+      buttons.forEach(b => b.classList.remove(`is-active`));
+      if (btnEl) btnEl.classList.add(`is-active`);
+      renderSalaryTable();
+      persistState();
+    }
+
+    function applyGradeRow(gradeId) {
+      const found = SALARY_GRADES.find(g => g.id === gradeId);
+      if (!found) return;
+      appState.salaryMode = `direct`;
+      appState.insuredSalary = found.base;
+      appState.monthlySalary = found.estTotal;
+      clearPresetHighlights();
+      syncDomInputsFromState();
+      updateCalculations();
+      showActionFeedback(`已套用 ${found.rank}（${found.title}）公保保俸 ${formatShortCurrency(found.base)}`);
+    }
+
+    // =========================================================================
+    // Saved Scenarios & Comparison Ledger
+    // =========================================================================
+    function saveCurrentScenario() {
+      const effectiveBase = getEffectiveBaseSalary();
+      const totalYearsDecimal = appState.years + (appState.months / 12);
+      const calc = computeBenefitForYears(totalYearsDecimal, appState.benefitRule);
+      const totalAmount = Math.round(effectiveBase * calc.months);
+
+      const ruleName = appState.benefitRule === `classic36`
+        ? `經典36月制`
+        : appState.benefitRule === `linear12`
+          ? `1.2倍制`
+          : `自訂月數`;
+
+      const tenureLabel = appState.benefitRule === `custom`
+        ? `指定 ${calc.months.toFixed(1)} 月`
+        : `${appState.years} 年 ${appState.months} 月`;
+
+      const matchedGrade = SALARY_GRADES.find(g => Math.abs(g.base - getRawInsuredSalary()) <= 500);
+      const title = matchedGrade
+        ? `${matchedGrade.rank}（${tenureLabel}）`
+        : `自訂保俸 ${formatShortCurrency(effectiveBase)}（${tenureLabel}）`;
+
+      const entry = {
+        id: String(Date.now()),
+        title: title,
+        baseSalary: effectiveBase,
+        months: calc.months,
+        totalAmount: totalAmount,
+        ruleName: ruleName,
+        snapshot: {
+          salaryMode: appState.salaryMode,
+          insuredSalary: appState.insuredSalary,
+          monthlySalary: appState.monthlySalary,
+          baseRatio: appState.baseRatio,
+          benefitRule: appState.benefitRule,
+          years: appState.years,
+          months: appState.months,
+          customMonths: appState.customMonths,
+          avgBaseMode: appState.avgBaseMode,
+          factor10yr: appState.factor10yr
+        }
+      };
+
+      if (appState.savedScenarios.length >= 4) {
+        appState.savedScenarios.shift();
+      }
+      appState.savedScenarios.push(entry);
+      renderSavedScenarios();
+      persistState();
+      showActionFeedback(`已將「${title}」加入比較冊`);
+    }
+
+    function loadSavedScenario(id) {
+      const found = appState.savedScenarios.find(item => item.id === id);
+      if (!found || !found.snapshot) return;
+      Object.assign(appState, found.snapshot);
+      clearPresetHighlights();
+      syncDomInputsFromState();
+      updateCalculations();
+      showActionFeedback(`已載入方案：${found.title}`);
+    }
+
+    function removeSavedScenario(id) {
+      appState.savedScenarios = appState.savedScenarios.filter(item => item.id !== id);
+      renderSavedScenarios();
+      persistState();
+    }
+
+    function clearSavedScenarios(btn) {
+      if (!btn) return;
+      if (btn.dataset.armed !== `true`) {
+        btn.dataset.armed = `true`;
+        btn.textContent = `再點一次確認清空`;
+        setTimeout(() => {
+          if (btn) {
+            btn.dataset.armed = `false`;
+            btn.textContent = `清空比較冊`;
+          }
+        }, 3500);
+        return;
+      }
+      btn.dataset.armed = `false`;
+      btn.textContent = `清空比較冊`;
+      appState.savedScenarios = [];
+      renderSavedScenarios();
+      persistState();
+      showActionFeedback(`比較冊已清空`);
+    }
+
+    function renderSavedScenarios() {
+      const container = document.getElementById(`saved-list-container`);
+      const countTag = document.getElementById(`saved-count-tag`);
+      const clearBtn = document.getElementById(`btn-clear-saved`);
+      if (!container || !countTag) return;
+
+      const list = appState.savedScenarios;
+      countTag.textContent = `${list.length} / 4 筆方案`;
+
+      if (clearBtn) {
+        clearBtn.style.display = list.length > 0 ? `inline-flex` : `none`;
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            尚未加入任何試算方案。<br>
+            調整上方薪資與年資後，點擊「加入比較冊」，即可在此並排比對不同職等或年資的純公保養老一次給付。
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.map(item => `
+        <div class="saved-card">
+          <div class="saved-card-top">
+            <span class="saved-card-title">${item.title}</span>
+            <span class="saved-card-amount">${formatCurrency(item.totalAmount)}</span>
+          </div>
+          <div class="saved-card-meta">
+            <span>保俸 ${formatShortCurrency(item.baseSalary)}</span>
+            <span>× ${item.months.toFixed(2)} 個月</span>
+            <span>(${item.ruleName})</span>
+          </div>
+          <div class="saved-card-actions">
+            <button type="button" class="btn-mini" onclick="loadSavedScenario('${item.id}')">載入此參數</button>
+            <button type="button" class="btn-mini" onclick="removeSavedScenario('${item.id}')">移除</button>
+          </div>
+        </div>
+      `).join(``);
+    }
+
+    // =========================================================================
+    // Export & Clipboard Actions
+    // =========================================================================
+    function copySummaryToClipboard() {
+      const effectiveBase = getEffectiveBaseSalary();
+      const totalYearsDecimal = appState.years + (appState.months / 12);
+      const calc = computeBenefitForYears(totalYearsDecimal, appState.benefitRule);
+      const totalAmount = Math.round(effectiveBase * calc.months);
+      const tenureStr = appState.benefitRule === `custom`
+        ? `自訂給付月數`
+        : `${appState.years} 年 ${appState.months} 個月`;
+
+      const text = [
+        `【鎖頭銀行公保退休金試算摘要（純公保版）】`,
+        `採計公保保俸：${formatCurrency(effectiveBase)}`,
+        `公保投保年資：${tenureStr}`,
+        `核計給付月數：${calc.months.toFixed(2)} 個月（上限 ${calc.cap} 個月）`,
+        `試算公式：${formatShortCurrency(effectiveBase)} × ${calc.months.toFixed(2)} 月 ＝ ${formatCurrency(totalAmount)}（約 ${(totalAmount / 10000).toFixed(2)} 萬元）`
+      ].join(`\n`);
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showActionFeedback(`試算摘要已複製到剪貼簿`);
+        }).catch(() => {
+          showActionFeedback(`無法存取剪貼簿，請改用「匯出比較表」`);
+        });
+      } else {
+        showActionFeedback(`瀏覽器不支援剪貼簿，請直接檢視畫面算式`);
+      }
+    }
+
+    function exportSavedCsv() {
+      const rows = [
+        [`方案名稱`, `採計公保保俸(元)`, `給付制度`, `給付月數`, `預估公保養老一次給付(元)`]
+      ];
+      if (appState.savedScenarios.length > 0) {
+        appState.savedScenarios.forEach(item => {
+          rows.push([item.title, item.baseSalary, item.ruleName, item.months.toFixed(2), item.totalAmount]);
+        });
+      } else {
+        const effectiveBase = getEffectiveBaseSalary();
+        const totalYearsDecimal = appState.years + (appState.months / 12);
+        const calc = computeBenefitForYears(totalYearsDecimal, appState.benefitRule);
+        const totalAmount = Math.round(effectiveBase * calc.months);
+        rows.push([`目前試算方案`, effectiveBase, appState.benefitRule, calc.months.toFixed(2), totalAmount]);
+      }
+
+      const csvContent = `\uFEFF` + rows.map(r => r.map(v => `"${String(v).replace(/"/g, `""`)}"`).join(`,`)).join(`\n`);
+      if (window.notebookAppApi && typeof window.notebookAppApi.triggerFileDownload === `function`) {
+        window.notebookAppApi.triggerFileDownload({
+          content: csvContent,
+          contentType: `text/csv`,
+          encoding: `UTF-8`,
+          filename: `lockbank_gpi_pension_estimate.csv`
+        });
+        showActionFeedback(`已匯出 CSV 試算表`);
+      } else {
+        const blob = new Blob([csvContent], { type: `text/csv;charset=utf-8;` });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement(`a`);
+        a.href = url;
+        a.download = `lockbank_gpi_pension_estimate.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showActionFeedback(`已匯出 CSV 試算表`);
+      }
+    }
+
+    function showActionFeedback(msg) {
+      const el = document.getElementById(`action-feedback`);
+      if (!el) return;
+      el.textContent = msg;
+      if (feedbackTimer) clearTimeout(feedbackTimer);
+      feedbackTimer = setTimeout(() => {
+        if (el) el.textContent = ``;
+      }, 3200);
+    }
+
+    // =========================================================================
+    // Dedicated Dual-Input Sync Handlers (No Snap-Back)
+    // =========================================================================
+    function syncInsuredFromSlider(val) {
+      appState.insuredSalary = clampNum(val, 20000, 130000);
+      const inputEl = document.getElementById(`input-insured-salary`);
+      if (inputEl) inputEl.value = appState.insuredSalary;
+      clearPresetHighlights();
+      updateCalculations();
+    }
+    function syncInsuredFromNumber(val) {
+      if (val === ``) return;
+      appState.insuredSalary = clampNum(val, 20000, 130000);
+      const sliderEl = document.getElementById(`slider-insured-salary`);
+      if (sliderEl) sliderEl.value = appState.insuredSalary;
+      clearPresetHighlights();
+      updateCalculations();
+    }
+
+    function syncMonthlyFromSlider(val) {
+      appState.monthlySalary = clampNum(val, 28000, 200000);
+      const inputEl = document.getElementById(`input-monthly-salary`);
+      if (inputEl) inputEl.value = appState.monthlySalary;
+      clearPresetHighlights();
+      updateCalculations();
+    }
+    function syncMonthlyFromNumber(val) {
+      if (val === ``) return;
+      appState.monthlySalary = clampNum(val, 28000, 200000);
+      const sliderEl = document.getElementById(`slider-monthly-salary`);
+      if (sliderEl) sliderEl.value = appState.monthlySalary;
+      clearPresetHighlights();
+      updateCalculations();
+    }
+
+    function syncRatioFromSlider(val) {
+      appState.baseRatio = clampNum(val, 40, 100);
+      const inputEl = document.getElementById(`input-base-ratio`);
+      if (inputEl) inputEl.value = appState.baseRatio;
+      clearPresetHighlights();
+      updateCalculations();
+    }
+    function syncRatioFromNumber(val) {
+      if (val === ``) return;
+      appState.baseRatio = clampNum(val, 40, 100);
+      const sliderEl = document.getElementById(`slider-base-ratio`);
+      if (sliderEl) sliderEl.value = appState.baseRatio;
+      clearPresetHighlights();
+      updateCalculations();
+    }
+
+    function syncYearsFromSlider(val) {
+      appState.years = clampNum(val, 0, 40);
+      const inputEl = document.getElementById(`input-years`);
+      if (inputEl) inputEl.value = appState.years;
+      clearPresetHighlights();
+      updateCalculations();
+    }
+    function syncYearsFromNumber(val) {
+      if (val === ``) return;
+      appState.years = clampNum(val, 0, 40);
+      const sliderEl = document.getElementById(`slider-years`);
+      if (sliderEl) sliderEl.value = appState.years;
+      clearPresetHighlights();
+      updateCalculations();
+    }
+
+    function syncMonthsFromSlider(val) {
+      appState.months = clampNum(val, 0, 11);
+      const inputEl = document.getElementById(`input-months`);
+      if (inputEl) inputEl.value = appState.months;
+      clearPresetHighlights();
+      updateCalculations();
+    }
+    function syncMonthsFromNumber(val) {
+      if (val === ``) return;
+      appState.months = clampNum(val, 0, 11);
+      const sliderEl = document.getElementById(`slider-months`);
+      if (sliderEl) sliderEl.value = appState.months;
+      clearPresetHighlights();
+      updateCalculations();
+    }
+
+    function syncCustomMonthsFromSlider(val) {
+      appState.customMonths = clampNum(val, 0, 42);
+      const inputEl = document.getElementById(`input-custom-months`);
+      if (inputEl) inputEl.value = appState.customMonths;
+      clearPresetHighlights();
+      updateCalculations();
+    }
+    function syncCustomMonthsFromNumber(val) {
+      if (val === ``) return;
+      appState.customMonths = clampNum(val, 0, 42);
+      const sliderEl = document.getElementById(`slider-custom-months`);
+      if (sliderEl) sliderEl.value = appState.customMonths;
+      clearPresetHighlights();
+      updateCalculations();
+    }
+
+    function syncFactorFromSlider(val) {
+      appState.factor10yr = clampNum(val, 70, 100);
+      const inputEl = document.getElementById(`input-10yr-factor`);
+      if (inputEl) inputEl.value = appState.factor10yr;
+      updateCalculations();
+    }
+    function syncFactorFromNumber(val) {
+      if (val === ``) return;
+      appState.factor10yr = clampNum(val, 70, 100);
+      const sliderEl = document.getElementById(`slider-10yr-factor`);
+      if (sliderEl) sliderEl.value = appState.factor10yr;
+      updateCalculations();
+    }
+
+    function updatePremiumFromInput(val) {
+      if (val === ``) return;
+      appState.premiumRate = clampNum(val, 5, 16);
+      updateCalculations();
+    }
+
+    // =========================================================================
+    // Mode & Preset Switchers
+    // =========================================================================
+    function setSalaryMode(mode) {
+      appState.salaryMode = mode;
+      const btnDirect = document.getElementById(`mode-btn-direct`);
+      const btnLinked = document.getElementById(`mode-btn-linked`);
+      const blkDirect = document.getElementById(`block-direct-salary`);
+      const blkLinked = document.getElementById(`block-linked-salary`);
+
+      if (btnDirect && btnLinked && blkDirect && blkLinked) {
+        btnDirect.classList.toggle(`is-active`, mode === `direct`);
+        btnLinked.classList.toggle(`is-active`, mode === `linked`);
+        blkDirect.style.display = mode === `direct` ? `flex` : `none`;
+        blkLinked.style.display = mode === `linked` ? `flex` : `none`;
+      }
+      updateCalculations();
+    }
+
+    function setBenefitRule(rule) {
+      appState.benefitRule = rule;
+      const btnC = document.getElementById(`rule-btn-classic36`);
+      const btnL = document.getElementById(`rule-btn-linear12`);
+      const btnM = document.getElementById(`rule-btn-custom`);
+      const blkTenure = document.getElementById(`block-tenure-inputs`);
+      const blkCustom = document.getElementById(`block-custom-months`);
+
+      if (btnC && btnL && btnM) {
+        btnC.classList.toggle(`is-active`, rule === `classic36`);
+        btnL.classList.toggle(`is-active`, rule === `linear12`);
+        btnM.classList.toggle(`is-active`, rule === `custom`);
+      }
+      if (blkTenure && blkCustom) {
+        blkTenure.style.display = rule === `custom` ? `none` : `flex`;
+        blkCustom.style.display = rule === `custom` ? `flex` : `none`;
+      }
+      updateCalculations();
+    }
+
+    function setAvgBaseMode(mode) {
+      appState.avgBaseMode = mode;
+      const btnFinal = document.getElementById(`avg-btn-final`);
+      const btn10yr = document.getElementById(`avg-btn-10yr`);
+      const blkFactor = document.getElementById(`block-10yr-factor`);
+      if (btnFinal && btn10yr && blkFactor) {
+        btnFinal.classList.toggle(`is-active`, mode === `final`);
+        btn10yr.classList.toggle(`is-active`, mode === `10yr`);
+        blkFactor.style.display = mode === `10yr` ? `flex` : `none`;
+      }
+      updateCalculations();
+    }
+
+    function clearPresetHighlights() {
+      appState.activePreset = null;
+      document.querySelectorAll(`.btn-preset`).forEach(b => b.classList.remove(`is-active`));
+    }
+
+    function applyPreset(key) {
+      const p = PRESETS[key];
+      if (!p) return;
+      appState.activePreset = key;
+      appState.salaryMode = p.salaryMode;
+      appState.insuredSalary = p.insuredSalary;
+      appState.monthlySalary = p.monthlySalary;
+      appState.baseRatio = p.baseRatio;
+      appState.benefitRule = p.benefitRule;
+      appState.years = p.years;
+      appState.months = p.months;
+      appState.customMonths = p.customMonths;
+      appState.avgBaseMode = p.avgBaseMode;
+      appState.factor10yr = p.factor10yr;
+
+      document.querySelectorAll(`.btn-preset`).forEach(b => {
+        b.classList.toggle(`is-active`, b.dataset.preset === key);
+      });
+
+      syncDomInputsFromState();
+      updateCalculations();
+      showActionFeedback(`已帶入情境：${p.label}`);
+    }
+
+    function handleResetAll(btn) {
+      if (!btn) return;
+      if (btn.dataset.armed !== `true`) {
+        btn.dataset.armed = `true`;
+        btn.textContent = `再點一次重設`;
+        setTimeout(() => {
+          if (btn) {
+            btn.dataset.armed = `false`;
+            btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>重設預設值`;
+          }
+        }, 3200);
+        return;
+      }
+      btn.dataset.armed = `false`;
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>重設預設值`;
+
+      const keptSaved = appState.savedScenarios;
+      appState = JSON.parse(JSON.stringify(DEFAULT_STATE));
+      appState.savedScenarios = keptSaved;
+      syncDomInputsFromState();
+      updateCalculations();
+      showActionFeedback(`已重設為預設試算參數`);
+    }
+
+    function syncDomInputsFromState() {
+      const pairs = [
+        [`input-insured-salary`, appState.insuredSalary],
+        [`slider-insured-salary`, appState.insuredSalary],
+        [`input-monthly-salary`, appState.monthlySalary],
+        [`slider-monthly-salary`, appState.monthlySalary],
+        [`input-base-ratio`, appState.baseRatio],
+        [`slider-base-ratio`, appState.baseRatio],
+        [`input-years`, appState.years],
+        [`slider-years`, appState.years],
+        [`input-months`, appState.months],
+        [`slider-months`, appState.months],
+        [`input-custom-months`, appState.customMonths],
+        [`slider-custom-months`, appState.customMonths],
+        [`input-10yr-factor`, appState.factor10yr],
+        [`slider-10yr-factor`, appState.factor10yr],
+        [`input-premium-rate`, appState.premiumRate]
+      ];
+      pairs.forEach(([id, value]) => {
+        const el = document.getElementById(id);
+        if (el) el.value = value;
+      });
+
+      document.querySelectorAll(`.btn-preset`).forEach(b => {
+        b.classList.toggle(`is-active`, b.dataset.preset === appState.activePreset);
+      });
+      document.querySelectorAll(`.filter-btn`).forEach(b => {
+        b.classList.toggle(`is-active`, b.dataset.tier === appState.gradeFilter);
+      });
+
+      // Sync segmented panels without recursive updateCalculations call
+      const btnDirect = document.getElementById(`mode-btn-direct`);
+      const btnLinked = document.getElementById(`mode-btn-linked`);
+      const blkDirect = document.getElementById(`block-direct-salary`);
+      const blkLinked = document.getElementById(`block-linked-salary`);
+      if (btnDirect && btnLinked && blkDirect && blkLinked) {
+        btnDirect.classList.toggle(`is-active`, appState.salaryMode === `direct`);
+        btnLinked.classList.toggle(`is-active`, appState.salaryMode === `linked`);
+        blkDirect.style.display = appState.salaryMode === `direct` ? `flex` : `none`;
+        blkLinked.style.display = appState.salaryMode === `linked` ? `flex` : `none`;
+      }
+
+      const btnC = document.getElementById(`rule-btn-classic36`);
+      const btnL = document.getElementById(`rule-btn-linear12`);
+      const btnM = document.getElementById(`rule-btn-custom`);
+      const blkTenure = document.getElementById(`block-tenure-inputs`);
+      const blkCustom = document.getElementById(`block-custom-months`);
+      if (btnC && btnL && btnM && blkTenure && blkCustom) {
+        btnC.classList.toggle(`is-active`, appState.benefitRule === `classic36`);
+        btnL.classList.toggle(`is-active`, appState.benefitRule === `linear12`);
+        btnM.classList.toggle(`is-active`, appState.benefitRule === `custom`);
+        blkTenure.style.display = appState.benefitRule === `custom` ? `none` : `flex`;
+        blkCustom.style.display = appState.benefitRule === `custom` ? `flex` : `none`;
+      }
+
+      const btnFinal = document.getElementById(`avg-btn-final`);
+      const btn10yr = document.getElementById(`avg-btn-10yr`);
+      const blkFactor = document.getElementById(`block-10yr-factor`);
+      if (btnFinal && btn10yr && blkFactor) {
+        btnFinal.classList.toggle(`is-active`, appState.avgBaseMode === `final`);
+        btn10yr.classList.toggle(`is-active`, appState.avgBaseMode === `10yr`);
+        blkFactor.style.display = appState.avgBaseMode === `10yr` ? `flex` : `none`;
+      }
+    }
+
+    // =========================================================================
+    // Gemini Notebook Shim API State Persistence & Lifecycle
+    // =========================================================================
+    let isInitializing = true;
+
+    async function persistState() {
+      if (isInitializing) return;
+      if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === `function`) {
+        try {
+          await window.notebookAppApi.setAppState(appState);
+        } catch (err) {
+          // Gracefully ignore persistence errors in standalone preview
+        }
+      }
+    }
+
+    async function initApp() {
+      if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === `function`) {
+        try {
+          const saved = await window.notebookAppApi.getAppState();
+          if (saved && typeof saved === `object`) {
+            appState = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), saved);
+          }
+        } catch (err) {
+          // Fallback to default state
+        }
+      }
+
+      syncDomInputsFromState();
+      isInitializing = false;
+      updateCalculations();
+
+      if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+        window.notebookAppApi.notifyAppReady();
+      }
+    }
+
+    initApp();
+  </script>
+</body>
+</html>
