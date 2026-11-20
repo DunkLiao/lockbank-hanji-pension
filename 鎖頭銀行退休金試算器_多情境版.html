@@ -919,6 +919,34 @@
     .site-nav a:hover, .site-nav a:focus-visible { color: var(--on-primary); background: var(--primary); }
     .site-nav a[aria-current="page"] { color: var(--on-primary); background: var(--primary); border-color: var(--primary); }
   </style>
+  <style id="shared-rwd-overrides">
+    :root { --rwd-gutter: clamp(12px, 3vw, 24px); --rwd-gap: clamp(16px, 3vw, 28px); }
+    body { min-width: 0; }
+    button, input, select, textarea { max-width: 100%; }
+    .site-nav { width: min(100%, 1180px); padding-inline: var(--rwd-gutter); }
+    .site-nav a { min-width: 0; min-height: 44px; display: flex; align-items: center; justify-content: center; text-align: center; white-space: normal; overflow-wrap: anywhere; }
+    .page-grid, .page-shell { padding-inline: var(--rwd-gutter); }
+    .btn, .preset-btn, .segment-btn, .filter-btn { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+    .field-label, .field-label-row, .field-header, .masthead-title, .masthead-sub, .masthead-subtitle, .codex-lede, .section-desc, .hero-formula-tag, .kpi-label, .kpi-sub, .status-toast { overflow-wrap: anywhere; }
+    .number-input, .num-input, .select-input, .input-with-unit, .number-wrap { min-width: 0; max-width: 100%; }
+    .ledger-table-wrap, .table-wrap, .table-scroll, .hanji-table-wrap { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .ledger-table, .hanji-table, .royal-table { min-width: max-content; }
+    @media (max-width: 960px) { .calc-grid, .workspace-grid, .workspace, .calculator-grid, .bottom-grid { grid-template-columns: minmax(0, 1fr); } }
+    @media (max-width: 640px) {
+      .site-nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+      .site-nav a { padding-inline: 8px; }
+      .page-grid, .page-shell { gap: var(--rwd-gap); padding-block: 16px; }
+      .codex-header, .royal-masthead, .scroll-sheet, .hanji-panel, .input-panel, .input-pane, .input-box, .inputs-panel, .output-pane, .output-panel, .workspace-body, .verdict-card, .hero-total-card { padding: 16px; }
+      .codex-header-top, .masthead, .masthead-grid, .toolbar-strip, .toolbar-row, .preset-strip, .preset-group, .action-group, .codex-actions, .masthead-actions, .table-toolbar, .hero-top-row { align-items: stretch; }
+      .toolbar-strip, .toolbar-row, .preset-strip { flex-direction: column; }
+      .codex-actions, .action-group, .masthead-actions, .preset-buttons, .preset-row { justify-content: stretch; }
+      .codex-actions > .btn, .action-group > .btn, .masthead-actions > .btn { flex: 1 1 100%; }
+      .dual-control, .dual-tenure-grid, .input-pair, .two-col-fields, .kpi-trio, .kpi-grid { grid-template-columns: minmax(0, 1fr); }
+      .segment-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .chart-box { min-height: 250px; height: 250px; }
+      .hero-total-card, .hero-result-top, .kpi-card, .kpi-tile, .status-seal, .seal-stamp, .royal-seal { max-width: 100%; }
+    }
+  </style>
 </head>
 <body>
   <nav class="site-nav" aria-label="網站導覽">
