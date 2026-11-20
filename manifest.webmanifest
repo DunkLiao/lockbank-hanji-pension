@@ -1,0 +1,47 @@
+{
+  "name": "鎖頭銀行退休金試算中心",
+  "short_name": "鎖頭銀行退休金",
+  "description": "鎖頭銀行退撫與保險給付統合試算工具",
+  "lang": "zh-Hant-TW",
+  "dir": "ltr",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F5F0E4",
+  "theme_color": "#1A2B49",
+  "icons": [
+    {
+      "src": "source/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "source/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "綜合退休金",
+      "short_name": "綜合退休金",
+      "url": "鎖頭銀行退休金試算器_正式版.html",
+      "icons": [{ "src": "source/favicon.png", "sizes": "512x512", "type": "image/png" }]
+    },
+    {
+      "name": "勞退新制",
+      "short_name": "勞退新制",
+      "url": "鎖頭銀行退休金試算器_勞退新制.html",
+      "icons": [{ "src": "source/favicon.png", "sizes": "512x512", "type": "image/png" }]
+    },
+    {
+      "name": "公保退休金",
+      "short_name": "公保退休金",
+      "url": "鎖頭銀行退休金試算器_公保.html",
+      "icons": [{ "src": "source/favicon.png", "sizes": "512x512", "type": "image/png" }]
+    }
+  ]
+}

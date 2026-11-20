@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">鎖頭銀行 favicon</title>
+  <desc id="desc">深黛藍底上的御金鎖頭與朱紅印記</desc>
+  <rect width="64" height="64" rx="10" fill="#1A2B49"/>
+  <path d="M20 29V22a12 12 0 0 1 24 0v7h-6v-7a6 6 0 0 0-12 0v7z" fill="#D4B26A"/>
+  <rect x="14" y="27" width="36" height="27" rx="5" fill="#D4B26A"/>
+  <path d="M32 34a5 5 0 0 0-3 9.01V48h6v-4.99A5 5 0 0 0 32 34Z" fill="#1A2B49"/>
+  <rect x="43" y="43" width="15" height="15" rx="3" fill="#A62C22"/>
+  <path d="M46 46h9v3h-3v3h3v3h-9v-3h3v-3h-3z" fill="#F5F0E4"/>
+</svg>
